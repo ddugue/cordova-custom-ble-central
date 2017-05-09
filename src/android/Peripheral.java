@@ -210,7 +210,7 @@ public class Peripheral extends BluetoothGattCallback {
         } else {
             LOG.e(TAG, "Service discovery failed. status = " + status);
             connectCallback.error(this.asJSONObject("Service discovery failed"));
-            disconnect();
+            disconnect(null);
         }
     }
 
