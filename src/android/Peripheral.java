@@ -50,6 +50,7 @@ public class Peripheral extends BluetoothGattCallback {
     BluetoothGatt gatt;
 
     private CallbackContext connectCallback;
+    private CallbackContext disconnectCallback;
     private CallbackContext readCallback;
     private CallbackContext writeCallback;
 
@@ -68,6 +69,7 @@ public class Peripheral extends BluetoothGattCallback {
         connecting = true;
 
         connectCallback = callbackContext;
+        disconnectCallback = null;
         if (Build.VERSION.SDK_INT < 23) {
             gatt = device.connectGatt(activity, false, this);
         } else {
@@ -79,15 +81,14 @@ public class Peripheral extends BluetoothGattCallback {
         callbackContext.sendPluginResult(result);
     }
 
-    public void disconnect() {
+    public void disconnect(CallbackContext callbackContext) {
         connectCallback = null;
         connected = false;
         connecting = false;
 
         if (gatt != null) {
+            disconnectCallback = callbackContext;
             gatt.disconnect();
-            gatt.close();
-            gatt = null;
         }
     }
 
@@ -224,6 +225,12 @@ public class Peripheral extends BluetoothGattCallback {
             connecting = false;
             gatt.discoverServices();
 
+        } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
+            if (disconnectCallback != null) {
+                disconnectCallback.success();
+            }
+            gatt = null;
+            gatt.close();
         } else {
 
             if (connectCallback != null) {
