@@ -221,11 +221,11 @@ public class Peripheral extends BluetoothGattCallback {
 
         if (status == 133) {
             if (disconnectCallback != null) {
-                disconnectCallback.error(this.asJSONObject("Error 133"));
+                disconnectCallback.error(this.asJSONObject("Error status 133 (State:" + newState.toString() + ")"));
             }
 
             if (connectCallback != null) {
-                connectCallback.error(this.asJSONObject("Error 133"));
+                connectCallback.error(this.asJSONObject("Error status 133 (State:" + newState.toString() + ")"));
             }
 
             gatt.close();
@@ -250,11 +250,11 @@ public class Peripheral extends BluetoothGattCallback {
         } else {
 
             if (disconnectCallback != null) {
-                disconnectCallback.error(this.asJSONObject(status.toString()));
+                disconnectCallback.error(this.asJSONObject("Peripheral received status " + status.toString() + " and state" + newState.toString()));
             }
 
             if (connectCallback != null) {
-                connectCallback.error(this.asJSONObject(status.toString()));
+                connectCallback.error(this.asJSONObject("Peripheral changed to status " + status.toString() + " and state" + newState.toString()));
             }
 
             gatt.close();
