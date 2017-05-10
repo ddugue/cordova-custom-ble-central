@@ -250,11 +250,11 @@ public class Peripheral extends BluetoothGattCallback {
         } else {
 
             if (disconnectCallback != null) {
-                disconnectCallback.error(this.asJSONObject(status));
+                disconnectCallback.error(this.asJSONObject(status.toString()));
             }
 
             if (connectCallback != null) {
-                connectCallback.error(this.asJSONObject(status));
+                connectCallback.error(this.asJSONObject(status.toString()));
             }
 
             gatt.close();
