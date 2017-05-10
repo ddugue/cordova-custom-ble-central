@@ -1,4 +1,4 @@
-// (c) 2104 Don Coleman
+// (c) ,2104 Don Coleman
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -221,11 +221,11 @@ public class Peripheral extends BluetoothGattCallback {
 
         if (status == 133) {
             if (disconnectCallback != null) {
-                disconnectCallback.error(this.asJSONObject("Error status 133 (State:" + newState.toString() + ")"));
+                disconnectCallback.error(this.asJSONObject("Error status 133 (State:" + String.valueOf(newState) + ")"));
             }
 
             if (connectCallback != null) {
-                connectCallback.error(this.asJSONObject("Error status 133 (State:" + newState.toString() + ")"));
+                connectCallback.error(this.asJSONObject("Error status 133 (State:" + String.valueOf(newState) + ")"));
             }
 
             gatt.close();
@@ -250,11 +250,11 @@ public class Peripheral extends BluetoothGattCallback {
         } else {
 
             if (disconnectCallback != null) {
-                disconnectCallback.error(this.asJSONObject("Peripheral received status " + status.toString() + " and state" + newState.toString()));
+                disconnectCallback.error(this.asJSONObject("Peripheral received status " + String.valueOf(status) + " and state" + String.valueOf(newState) ));
             }
 
             if (connectCallback != null) {
-                connectCallback.error(this.asJSONObject("Peripheral changed to status " + status.toString() + " and state" + newState.toString()));
+                connectCallback.error(this.asJSONObject("Peripheral changed to status " + String.valueOf(status) + " and state" + String.valueOf(newState) ));
             }
 
             gatt.close();
