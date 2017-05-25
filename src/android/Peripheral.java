@@ -66,25 +66,23 @@ public class Peripheral extends BluetoothGattCallback {
 
     public void connect(CallbackContext callbackContext, Activity activity) {
         BluetoothDevice device = getDevice();
-        connecting = true;
-
         connectCallback = callbackContext;
-        disconnectCallback = null;
-        if (Build.VERSION.SDK_INT < 23) {
-            gatt = device.connectGatt(activity, false, this);
-        } else {
-            gatt = device.connectGatt(activity, false, this, BluetoothDevice.TRANSPORT_LE);
-        }
+        if (connecting == false && connected == false){
+            connecting = true;
 
-        PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
-        result.setKeepCallback(true);
-        callbackContext.sendPluginResult(result);
+            if (Build.VERSION.SDK_INT < 23) {
+                gatt = device.connectGatt(activity, false, this);
+            } else {
+                gatt = device.connectGatt(activity, false, this, BluetoothDevice.TRANSPORT_LE);
+            }
+
+            PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
+            result.setKeepCallback(true);
+            callbackContext.sendPluginResult(result);
+        }
     }
 
     public void disconnect(CallbackContext callbackContext) {
-        connectCallback = null;
-        connected = false;
-        connecting = false;
 
         if (gatt != null) {
             disconnectCallback = callbackContext;
@@ -228,15 +226,19 @@ public class Peripheral extends BluetoothGattCallback {
                 connectCallback.error(this.asJSONObject("Error status 133 (State:" + String.valueOf(newState) + ")"));
             }
 
-            gatt.close();
-            gatt = null;
+            this.gatt.close();
+            this.gatt = null;
         } else if (newState == BluetoothGatt.STATE_CONNECTED) {
 
             connected = true;
             connecting = false;
-            gatt.discoverServices();
+            this.gatt.discoverServices();
 
         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
+
+            connected = false;
+            connecting = false;
+
             if (disconnectCallback != null) {
                 disconnectCallback.success();
             }
@@ -245,8 +247,8 @@ public class Peripheral extends BluetoothGattCallback {
                 connectCallback.error(this.asJSONObject("Peripheral Disconnected"));
             }
 
-            gatt.close();
-            gatt = null;
+            this.gatt.close();
+            this.gatt = null;
         } else {
 
             if (disconnectCallback != null) {
@@ -257,8 +259,8 @@ public class Peripheral extends BluetoothGattCallback {
                 connectCallback.error(this.asJSONObject("Peripheral changed to status " + String.valueOf(status) + " and state" + String.valueOf(newState) ));
             }
 
-            gatt.close();
-            gatt = null;
+            this.gatt.close();
+            this.gatt = null;
         }
 
     }
