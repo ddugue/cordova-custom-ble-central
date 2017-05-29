@@ -90,6 +90,11 @@ public class Peripheral extends BluetoothGattCallback {
                 disconnectCallback = callbackContext;
                 gatt.disconnect();
             }
+
+            if (connecting == true && connected == false) {
+                disconnectCallback.success();
+                this.cleanUp();
+            }
         }
     }
 
