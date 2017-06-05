@@ -74,6 +74,7 @@ public class Peripheral extends BluetoothGattCallback {
                 gatt = device.connectGatt(activity, false, this);
             } else {
                 gatt = device.connectGatt(activity, false, this, BluetoothDevice.TRANSPORT_LE);
+                gatt.requestConnectionPriority(1);
             }
 
             PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
