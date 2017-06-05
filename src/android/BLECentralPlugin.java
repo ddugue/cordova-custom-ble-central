@@ -48,7 +48,7 @@ import org.json.JSONException;
 
 import java.util.*;
 
-public class BLECentralPlugin extends CordovaPlugin implements ScanCallback {
+public class BLECentralPlugin extends CordovaPlugin {
     // actions
     private static final String SCAN = "scan";
     private static final String START_SCAN = "startScan";
@@ -121,6 +121,18 @@ public class BLECentralPlugin extends CordovaPlugin implements ScanCallback {
     public void onReset() {
         removeStateListener();
     }
+
+    private ScanCallback mScanCallback = new ScanCallback() {
+            @Override
+            public void onScanResult(int callbackType, ScanResult result) {
+                BLECentralPlugin.this.onScanResult(callbackType, result);
+            }
+
+            @Override
+            public void onScanFailed(int errorCode) {
+                LOG.e(TAG, "Error Code: " + errorCode);
+            }
+        };
 
     @Override
     public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
@@ -468,17 +480,6 @@ public class BLECentralPlugin extends CordovaPlugin implements ScanCallback {
 
     }
 
-    private ScanCallback mScanCallback = new ScanCallback() {
-            @Override
-            public void onScanResult(int callbackType, ScanResult result) {
-                BLECentralPlugin.this.onScanResult(callbackType, result);
-            }
-
-            @Override
-            public void onScanFailed(int errorCode) {
-                LOG.e(TAG, "Error Code: " + errorCode);
-            }
-        };
 
     private void findLowEnergyDevices(CallbackContext callbackContext, UUID[] serviceUUIDs, int scanSeconds) {
 
@@ -530,7 +531,7 @@ public class BLECentralPlugin extends CordovaPlugin implements ScanCallback {
                 public void run() {
                     LOG.d(TAG, "Stopping Scan");
                     // BLECentralPlugin.this.bluetoothScanner.stopLeScan(BLECentralPlugin.this);
-                    BLECentralPlugin.this.bluetoothScanner.stopScan(this.mScanCallback);
+                    BLECentralPlugin.this.bluetoothScanner.stopScan(BLECentralPlugin.this.mScanCallback);
                 }
             }, scanSeconds * 1000);
         }
@@ -582,10 +583,10 @@ public class BLECentralPlugin extends CordovaPlugin implements ScanCallback {
     //     }
     // }
 
-    public void onScanResult(int callbackType, ScanResult result) {
-        BluetoothDevice device = result.getDevice();
-        int rssi = result.getRssi();
-        byte[] scanRecord = result.getScanRecord().getBytes();
+    public void onScanResult(int callbackType, ScanResult sresult) {
+        BluetoothDevice device = sresult.getDevice();
+        int rssi = sresult.getRssi();
+        byte[] scanRecord = sresult.getScanRecord().getBytes();
 
         String address = device.getAddress();
         boolean alreadyReported = peripherals.containsKey(address);
@@ -611,6 +612,7 @@ public class BLECentralPlugin extends CordovaPlugin implements ScanCallback {
             }
         }
     }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
