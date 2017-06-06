@@ -98,7 +98,7 @@ public class Peripheral extends BluetoothGattCallback {
 
             if (connecting == true && connected == false) {
                 disconnectCallback.success();
-                this.cleanUp();
+                this.cleanUp(false);
             }
         }
     }
@@ -255,7 +255,7 @@ public class Peripheral extends BluetoothGattCallback {
                 connectCallback.error(this.asJSONObject("Peripheral Disconnected"));
             }
 
-            this.cleanUp();
+            this.cleanUp(false);
         } else {
 
             if (disconnectCallback != null) {
