@@ -130,6 +130,9 @@ public class BLECentralPlugin extends CordovaPlugin {
 
             @Override
             public void onScanFailed(int errorCode) {
+                if (this.discoverCallback != null) {
+                    this.discoverCallback.error("Scan failed for unknown reason");
+                }
                 LOG.e(TAG, "Error Code: " + errorCode);
             }
         };
