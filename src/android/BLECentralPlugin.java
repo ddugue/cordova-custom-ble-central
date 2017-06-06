@@ -373,6 +373,14 @@ public class BLECentralPlugin extends CordovaPlugin {
             peripheral = new Peripheral(ble, 0, bytes);
             peripherals.put(ble.getAddress(), peripheral);
         }
+
+        // Close all opened gatt connection
+        for (Map.Entry<String, Peripheral> entry : peripherals.entrySet()) {
+            if (entry.getKey() != macAddress && entry.getValue().gatt != null) {
+                entry.getValue().gatt.close();
+                entry.getValue().gatt = null;
+            }
+        }
         peripheral.connect(callbackContext, cordova.getActivity());
     }
 
