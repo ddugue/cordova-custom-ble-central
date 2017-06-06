@@ -70,13 +70,17 @@ public class Peripheral extends BluetoothGattCallback {
             connecting = true;
 
             connectCallback = callbackContext;
+            if (this.gatt) {
+                this.gatt.requestConnectionPriority(1);
+            }
             if (Build.VERSION.SDK_INT < 23) {
                 gatt = device.connectGatt(activity, false, this);
             } else {
                 gatt = device.connectGatt(activity, false, this, BluetoothDevice.TRANSPORT_LE);
-                gatt.requestConnectionPriority(1);
             }
-
+            if (this.gatt) {
+                this.gatt.requestConnectionPriority(1);
+            }
             PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
             result.setKeepCallback(true);
             // callbackContext.sendPluginResult(result);
@@ -235,7 +239,7 @@ public class Peripheral extends BluetoothGattCallback {
                 connectCallback.error(this.asJSONObject("Error status 133 (State:" + String.valueOf(newState) + ")"));
             }
 
-            this.cleanUp();
+            this.cleanUp(true);
         } else if (newState == BluetoothGatt.STATE_CONNECTED) {
 
             connected = true;
@@ -262,18 +266,19 @@ public class Peripheral extends BluetoothGattCallback {
                 connectCallback.error(this.asJSONObject("Peripheral changed to status " + String.valueOf(status) + " and state" + String.valueOf(newState) ));
             }
 
-            this.cleanUp();
-
+            this.cleanUp(true);
         }
 
     }
 
-    public void cleanUp() {
+    public void cleanUp(boolean close) {
 
         this.connected = false;
         this.connecting = false;
-        this.gatt.close();
-        this.gatt = null;
+        if (close) {
+            this.gatt.close();
+            this.gatt = null;
+        }
         this.commandQueue.clear();
         this.bleProcessing = false;
     }
