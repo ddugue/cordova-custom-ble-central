@@ -255,7 +255,7 @@ public class Peripheral extends BluetoothGattCallback {
                 connectCallback.error(this.asJSONObject("Peripheral Disconnected"));
             }
 
-            this.cleanUp(false);
+            this.cleanUp(true);
         } else {
 
             if (disconnectCallback != null) {
