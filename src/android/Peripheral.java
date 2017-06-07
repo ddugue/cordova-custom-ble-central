@@ -20,6 +20,7 @@ import android.bluetooth.*;
 import android.os.Build;
 import android.util.Base64;
 import android.os.Handler;
+import android.os.Looper;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.LOG;
 import org.apache.cordova.PluginResult;
@@ -246,7 +247,7 @@ public class Peripheral extends BluetoothGattCallback {
             connected = true;
             connecting = false;
 
-            Handler handler = new Handler();
+            Handler handler = new Handler(Looper.getMainLooper());
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -300,7 +301,7 @@ public class Peripheral extends BluetoothGattCallback {
             // } catch (Exception e) {
             //     e.getLocalizedMessage();
             // }
-            Handler handler = new Handler();
+            Handler handler = new Handler(Looper.getMainLooper());
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
