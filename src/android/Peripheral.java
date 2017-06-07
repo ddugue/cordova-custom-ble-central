@@ -247,14 +247,15 @@ public class Peripheral extends BluetoothGattCallback {
             connected = true;
             connecting = false;
 
-            Handler handler = new Handler(Looper.getMainLooper());
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    LOG.d(TAG, "Closing Gatt");
-                    Peripheral.this.gatt.discoverServices();
-                }
-            }, 500);
+            this.gatt.discoverServices();
+            // Handler handler = new Handler(Looper.getMainLooper());
+            // handler.postDelayed(new Runnable() {
+            //     @Override
+            //     public void run() {
+            //         LOG.d(TAG, "Closing Gatt");
+            //         Peripheral.this.gatt.discoverServices();
+            //     }
+            // }, 500);
             // try {
             //     Thread.sleep(500);
             //     // Do some stuff
@@ -301,15 +302,17 @@ public class Peripheral extends BluetoothGattCallback {
             // } catch (Exception e) {
             //     e.getLocalizedMessage();
             // }
-            Handler handler = new Handler(Looper.getMainLooper());
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    LOG.d(TAG, "Closing Gatt");
-                    Peripheral.this.gatt.close();
-                    Peripheral.this.gatt = null;
-                }
-            }, 500);
+            this.gatt.close();
+            this.gatt = null;
+            // Handler handler = new Handler(Looper.getMainLooper());
+            // handler.postDelayed(new Runnable() {
+            //     @Override
+            //     public void run() {
+            //         LOG.d(TAG, "Closing Gatt");
+            //         Peripheral.;
+            //         Peripheral.this.gatt = null;
+            //     }
+            // }, 500);
         }
     }
 
