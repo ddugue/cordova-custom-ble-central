@@ -19,6 +19,7 @@ import android.app.Activity;
 import android.bluetooth.*;
 import android.os.Build;
 import android.util.Base64;
+import android.os.Handler;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.LOG;
 import org.apache.cordova.PluginResult;
@@ -244,13 +245,15 @@ public class Peripheral extends BluetoothGattCallback {
 
             connected = true;
             connecting = false;
-            new Thread(new Runnable(){
-                    @Override
-                    public run(){
-                        Thread.sleep(500);//sleeping for 1 second
-                        Peripheral.this.gatt.discoverServices();
-                    }
-                }).start();
+
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    LOG.d(TAG, "Closing Gatt");
+                    Peripheral.this.gatt.discoverServices();
+                }
+            }, 500);
             // try {
             //     Thread.sleep(500);
             //     // Do some stuff
@@ -297,14 +300,15 @@ public class Peripheral extends BluetoothGattCallback {
             // } catch (Exception e) {
             //     e.getLocalizedMessage();
             // }
-            new Thread(new Runnable(){
-                    @Override
-                    public run(){
-                        Thread.sleep(500);//sleeping for 1 second
-                        Peripheral.this.gatt.close();
-                        Peripheral.this.gatt = null;
-                    }
-                }).start();
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    LOG.d(TAG, "Closing Gatt");
+                    Peripheral.this.gatt.close();
+                    Peripheral.this.gatt = null;
+                }
+            }, 500);
         }
     }
 
