@@ -244,7 +244,12 @@ public class Peripheral extends BluetoothGattCallback {
 
             connected = true;
             connecting = false;
-            Thread.sleep(500);
+            try {
+                Thread.sleep(500);
+                // Do some stuff
+            } catch (Exception e) {
+                e.getLocalizedMessage();
+            }
             gatt.discoverServices();
 
         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
@@ -279,7 +284,12 @@ public class Peripheral extends BluetoothGattCallback {
         this.commandQueue.clear();
         this.bleProcessing = false;
         if (close) {
-            Thread.sleep(500);
+            try {
+                Thread.sleep(500);
+                // Do some stuff
+            } catch (Exception e) {
+                e.getLocalizedMessage();
+            }
             this.gatt.close();
             this.gatt = null;
         }
