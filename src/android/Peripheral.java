@@ -244,13 +244,20 @@ public class Peripheral extends BluetoothGattCallback {
 
             connected = true;
             connecting = false;
-            try {
-                Thread.sleep(500);
-                // Do some stuff
-            } catch (Exception e) {
-                e.getLocalizedMessage();
-            }
-            gatt.discoverServices();
+            new Thread(new Runnable(){
+                    @Override
+                    public run(){
+                        Thread.sleep(500);//sleeping for 1 second
+                        Peripheral.this.gatt.discoverServices();
+                    }
+                }).start();
+            // try {
+            //     Thread.sleep(500);
+            //     // Do some stuff
+            // } catch (Exception e) {
+            //     e.getLocalizedMessage();
+            // }
+            // gatt.discoverServices();
 
         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
             if (disconnectCallback != null) {
@@ -284,14 +291,20 @@ public class Peripheral extends BluetoothGattCallback {
         this.commandQueue.clear();
         this.bleProcessing = false;
         if (close) {
-            try {
-                Thread.sleep(500);
-                // Do some stuff
-            } catch (Exception e) {
-                e.getLocalizedMessage();
-            }
-            this.gatt.close();
-            this.gatt = null;
+            // try {
+            //     Thread.sleep(500);
+            //     // Do some stuff
+            // } catch (Exception e) {
+            //     e.getLocalizedMessage();
+            // }
+            new Thread(new Runnable(){
+                    @Override
+                    public run(){
+                        Thread.sleep(500);//sleeping for 1 second
+                        Peripheral.this.gatt.close();
+                        Peripheral.this.gatt = null;
+                    }
+                }).start();
         }
     }
 
