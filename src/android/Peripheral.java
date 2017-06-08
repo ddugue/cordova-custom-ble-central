@@ -278,7 +278,7 @@ public class Peripheral extends BluetoothGattCallback {
                         // It should be a disconnect
                         LOG.d(TAG, "Received connected state while connecting is false");
                         Peripheral.this.disconnect(null);
-                        this.disconnect(null);
+                        // this.disconnect(null);
                     } else {
 
                         Peripheral.this.gatt.discoverServices();
