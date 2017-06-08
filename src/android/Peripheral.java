@@ -330,7 +330,7 @@ public class Peripheral extends BluetoothGattCallback {
             // }, 500);
         }
         // We try to force it down we this:
-        if (activity){
+        if (activity != null){
             Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, getDevice().getAddress());
             activity.getApplicationContext().sendBroadcast(intent, BLUETOOTH_ADMIN_PERM);
