@@ -79,9 +79,9 @@ public class Peripheral extends BluetoothGattCallback {
             connecting = true;
 
             connectCallback = callbackContext;
-            // if (this.gatt != null) {
-            //     this.gatt.requestConnectionPriority(1);
-            // }
+            if (this.gatt != null) {
+                this.gatt.close();
+            }
             if (Build.VERSION.SDK_INT < 23) {
                 gatt = device.connectGatt(activity, this.badDisconnect, this);
             } else {
@@ -110,7 +110,7 @@ public class Peripheral extends BluetoothGattCallback {
                 this.badDisconnect = true;
 
                 LOG.d(TAG, "Cancelling connection before full connected");
-                this.cleanUp(true);
+                this.cleanUp(false);
             }
         }
     }
