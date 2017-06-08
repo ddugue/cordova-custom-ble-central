@@ -82,6 +82,7 @@ public class Peripheral extends BluetoothGattCallback {
             if (this.gatt != null) {
                 this.gatt.close();
             }
+            LOG.d(TAG, "Trying to connect ( " + String.valueOf(this.badDisconnect) + ")");
             if (Build.VERSION.SDK_INT < 23) {
                 gatt = device.connectGatt(activity, this.badDisconnect, this);
             } else {
