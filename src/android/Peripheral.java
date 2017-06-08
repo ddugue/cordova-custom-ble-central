@@ -108,6 +108,8 @@ public class Peripheral extends BluetoothGattCallback {
             if (connecting == true && connected == false) {
                 disconnectCallback.success();
                 this.badDisconnect = true;
+
+                LOG.d(TAG, "Cancelling connection before full connected");
                 this.cleanUp(true);
             }
         }
@@ -225,6 +227,7 @@ public class Peripheral extends BluetoothGattCallback {
         super.onServicesDiscovered(gatt, status);
 
         if (status == BluetoothGatt.GATT_SUCCESS) {
+            LOG.d(TAG, "Received service discovered state");
             PluginResult result = new PluginResult(PluginResult.Status.OK, this.asJSONObject(gatt));
             result.setKeepCallback(true);
             connectCallback.sendPluginResult(result);
@@ -241,6 +244,7 @@ public class Peripheral extends BluetoothGattCallback {
         this.gatt = gatt;
 
         if (status == 133) {
+            LOG.d(TAG, "Received error 133");
             this.badDisconnect = true;
             if (disconnectCallback != null) {
                 disconnectCallback.error(this.asJSONObject("Error status 133 (State:" + String.valueOf(newState) + ")"));
@@ -252,8 +256,11 @@ public class Peripheral extends BluetoothGattCallback {
 
             this.cleanUp(true);
         } else if (newState == BluetoothGatt.STATE_CONNECTED) {
+
+            LOG.d(TAG, "Received connected state");
             if (connected == false && connecting == false) {
                 // It should be a disconnect
+                LOG.d(TAG, "Received connected state while connecting is false");
                 this.disconnect(null);
             } else {
                 connected = true;
@@ -278,6 +285,7 @@ public class Peripheral extends BluetoothGattCallback {
             // gatt.discoverServices();
 
         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
+            LOG.d(TAG, "Received disconnected state");
             this.badDisconnect = false;
             if (disconnectCallback != null) {
                 disconnectCallback.success();
@@ -299,6 +307,7 @@ public class Peripheral extends BluetoothGattCallback {
                 connectCallback.error(this.asJSONObject("Peripheral changed to status " + String.valueOf(status) + " and state" + String.valueOf(newState) ));
             }
 
+            LOG.d(TAG, "Received weird status " + String.valueOf(status));
             this.cleanUp(true);
         }
 
@@ -401,6 +410,8 @@ public class Peripheral extends BluetoothGattCallback {
     @Override
     public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
         super.onReadRemoteRssi(gatt, rssi, status);
+
+        LOG.d(TAG, "Received remote RSSI" + rssi);
         if (readCallback != null) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 updateRssi(rssi);
