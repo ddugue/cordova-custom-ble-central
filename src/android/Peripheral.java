@@ -21,6 +21,8 @@ import android.os.Build;
 import android.util.Base64;
 import android.os.Handler;
 import android.os.Looper;
+import android.content.Intent;
+
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.LOG;
 import org.apache.cordova.PluginResult;
@@ -39,6 +41,7 @@ public class Peripheral extends BluetoothGattCallback {
     // 0x2902 org.bluetooth.descriptor.gatt.client_characteristic_configuration.xml
     //public final static UUID CLIENT_CHARACTERISTIC_CONFIGURATION_UUID = UUID.fromString("00002902-0000-1000-8000-00805F9B34FB");
     public final static UUID CLIENT_CHARACTERISTIC_CONFIGURATION_UUID = UUIDHelper.uuidFromString("2902");
+    static final String BLUETOOTH_ADMIN_PERM = android.Manifest.permission.BLUETOOTH_ADMIN;
     private static final String TAG = "Peripheral";
 
     private BluetoothDevice device;
@@ -56,6 +59,7 @@ public class Peripheral extends BluetoothGattCallback {
     private CallbackContext disconnectCallback;
     private CallbackContext readCallback;
     private CallbackContext writeCallback;
+    private Activity activity;
 
     private Map<String, CallbackContext> notificationCallbacks = new HashMap<String, CallbackContext>();
 
@@ -68,6 +72,8 @@ public class Peripheral extends BluetoothGattCallback {
     }
 
     public void connect(CallbackContext callbackContext, Activity activity) {
+        this.activity = activity;
+
         BluetoothDevice device = getDevice();
         if (connected == false && connecting == false){
             connecting = true;
@@ -322,6 +328,12 @@ public class Peripheral extends BluetoothGattCallback {
             //         Peripheral.this.gatt = null;
             //     }
             // }, 500);
+        }
+        // We try to force it down we this:
+        if (activity){
+            Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, getDevice().getAddress());
+            activity.getApplicationContext().sendBroadcast(intent, BLUETOOTH_ADMIN_PERM);
         }
     }
 
