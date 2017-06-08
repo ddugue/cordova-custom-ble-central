@@ -246,11 +246,15 @@ public class Peripheral extends BluetoothGattCallback {
 
             this.cleanUp(true);
         } else if (newState == BluetoothGatt.STATE_CONNECTED) {
+            if (connected == false && connecting == false) {
+                // It should be a disconnect
+                this.disconnect(null);
+            } else {
+                connected = true;
+                connecting = false;
 
-            connected = true;
-            connecting = false;
-
-            this.gatt.discoverServices();
+                this.gatt.discoverServices();
+            }
             // Handler handler = new Handler(Looper.getMainLooper());
             // handler.postDelayed(new Runnable() {
             //     @Override
