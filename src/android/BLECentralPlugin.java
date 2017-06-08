@@ -509,17 +509,17 @@ public class BLECentralPlugin extends CordovaPlugin {
         }
 
         // clear non-connected cached peripherals
-        for(Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
-            Map.Entry<String, Peripheral> entry = iterator.next();
-            Peripheral device = entry.getValue();
-            boolean connecting = device.isConnecting();
-            if (connecting){
-                LOG.d(TAG, "Not removing connecting device: " + device.getDevice().getAddress());
-            }
-            if(!entry.getValue().isConnected() && !connecting) {
-                iterator.remove();
-            }
-        }
+        // for(Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
+        //     Map.Entry<String, Peripheral> entry = iterator.next();
+        //     Peripheral device = entry.getValue();
+        //     boolean connecting = device.isConnecting();
+        //     if (connecting){
+        //         LOG.d(TAG, "Not removing connecting device: " + device.getDevice().getAddress());
+        //     }
+        //     if(!entry.getValue().isConnected() && !connecting) {
+        //         iterator.remove();
+        //     }
+        // }
 
         discoverCallback = callbackContext;
         this.filters = new ArrayList<ScanFilter>();

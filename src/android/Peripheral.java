@@ -267,24 +267,24 @@ public class Peripheral extends BluetoothGattCallback {
                 connected = true;
                 connecting = false;
 
-                Handler handler = new Handler(Looper.getMainLooper());
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        LOG.d(TAG, "Going to discover services");
-                        if (connected == false && connecting == false) {
-                            // It should be a disconnect
-                            LOG.d(TAG, "Received connected state while connecting is false");
-                            Peripheral.this.disconnect(null);
-                            // this.disconnect(null);
-                        } else {
+                // Handler handler = new Handler(Looper.getMainLooper());
+                // handler.postDelayed(new Runnable() {
+                //     @Override
+                //     public void run() {
+                //         LOG.d(TAG, "Going to discover services");
+                //         if (connected == false && connecting == false) {
+                //             // It should be a disconnect
+                //             LOG.d(TAG, "Received connected state while connecting is false");
+                //             Peripheral.this.disconnect(null);
+                //             // this.disconnect(null);
+                //         } else {
 
-                            Peripheral.this.gatt.discoverServices();
-                            // this.gatt.discoverServices();
-                        }
-                    }
-                }, 300);
-                // this.gatt.discoverServices();
+                //             Peripheral.this.gatt.discoverServices();
+                //             // this.gatt.discoverServices();
+                //         }
+                //     }
+                // }, 300);
+                this.gatt.discoverServices();
             }
             // try {
             //     Thread.sleep(500);
