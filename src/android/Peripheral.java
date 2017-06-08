@@ -255,7 +255,7 @@ public class Peripheral extends BluetoothGattCallback {
                 connectCallback.error(this.asJSONObject("Error status 133 (State:" + String.valueOf(newState) + ")"));
             }
 
-            this.cleanUp(true);
+            this.cleanUp(false);
         } else if (newState == BluetoothGatt.STATE_CONNECTED) {
 
             LOG.d(TAG, "Received connected state");
