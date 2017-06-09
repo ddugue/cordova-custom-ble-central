@@ -84,9 +84,9 @@ public class Peripheral extends BluetoothGattCallback {
             }
             LOG.d(TAG, "Trying to connect ( " + String.valueOf(this.badDisconnect) + ")");
             if (Build.VERSION.SDK_INT < 23) {
-                gatt = device.connectGatt(activity, this.badDisconnect, this);
+                gatt = device.connectGatt(activity, false, this);
             } else {
-                gatt = device.connectGatt(activity, this.badDisconnect, this, BluetoothDevice.TRANSPORT_LE);
+                gatt = device.connectGatt(activity, false, this, BluetoothDevice.TRANSPORT_LE);
             }
             // if (this.gatt != null) {
             //     this.gatt.requestConnectionPriority(1);
@@ -284,6 +284,7 @@ public class Peripheral extends BluetoothGattCallback {
                 //         }
                 //     }
                 // }, 300);
+                this.gatt.requestConnectionPriority(1);
                 this.gatt.discoverServices();
             }
             // try {
