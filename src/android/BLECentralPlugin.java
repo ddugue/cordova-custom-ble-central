@@ -166,7 +166,7 @@ public class BLECentralPlugin extends CordovaPlugin {
             if (Build.VERSION.SDK_INT > 22) {
                 sBuilder.setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE);
             }
-            settings = SBuilder.build();
+            settings = sBuilder.build();
 
         }
 
