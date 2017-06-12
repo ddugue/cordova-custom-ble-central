@@ -156,6 +156,9 @@ public class BLECentralPlugin extends CordovaPlugin {
             }
             bluetoothManager = (BluetoothManager) activity.getSystemService(Context.BLUETOOTH_SERVICE);
             bluetoothAdapter = bluetoothManager.getAdapter();
+        }
+
+        if (bluetoothScanner == null) {
             bluetoothScanner = bluetoothAdapter.getBluetoothLeScanner();
             settings = new ScanSettings.Builder()
                         .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
@@ -379,13 +382,13 @@ public class BLECentralPlugin extends CordovaPlugin {
             peripherals.put(ble.getAddress(), peripheral);
         }
 
-        for (BluetoothDevice device : bluetoothManager.getConnectedDevices(BluetoothProfile.GATT)) {
-            LOG.w(TAG, "Trying to connect while another device is connected (" + device.getAddress() + ")");
-            Peripheral cached = peripherals.get(device.getAddress());
-            if (cached != null) {
-                cached.gatt.close();
-            }
-        }
+        // for (BluetoothDevice device : bluetoothManager.getConnectedDevices(BluetoothProfile.GATT)) {
+        //     LOG.w(TAG, "Trying to connect while another device is connected (" + device.getAddress() + ")");
+        //     Peripheral cached = peripherals.get(device.getAddress());
+        //     if (cached != null) {
+        //         cached.gatt.close();
+        //     }
+        // }
 
         // Close all opened gatt connection
         for (Map.Entry<String, Peripheral> entry : peripherals.entrySet()) {
