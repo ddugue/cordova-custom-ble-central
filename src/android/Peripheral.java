@@ -111,7 +111,7 @@ public class Peripheral extends BluetoothGattCallback {
                 this.badDisconnect = true;
 
                 LOG.d(TAG, "Cancelling connection before full connected");
-                this.cleanUp(false);
+                this.cleanUp(true);
             }
         }
     }
