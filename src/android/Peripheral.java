@@ -107,7 +107,9 @@ public class Peripheral extends BluetoothGattCallback {
             }
 
             if (connecting == true && connected == false) {
-                disconnectCallback.success();
+                if (disconnectCallback != null) {
+                    disconnectCallback.success();
+                }
                 this.badDisconnect = true;
 
                 LOG.d(TAG, "Cancelling connection before full connected");
@@ -227,6 +229,8 @@ public class Peripheral extends BluetoothGattCallback {
     public void onServicesDiscovered(BluetoothGatt gatt, int status) {
         super.onServicesDiscovered(gatt, status);
 
+        connected = true;
+        connecting = false;
         if (status == BluetoothGatt.GATT_SUCCESS) {
             LOG.d(TAG, "Received service discovered state");
             PluginResult result = new PluginResult(PluginResult.Status.OK, this.asJSONObject(gatt));
@@ -265,8 +269,6 @@ public class Peripheral extends BluetoothGattCallback {
                 LOG.d(TAG, "Received connected state while connecting is false");
                 this.disconnect(null);
             } else {
-                connected = true;
-                connecting = false;
 
                 // Handler handler = new Handler(Looper.getMainLooper());
                 // handler.postDelayed(new Runnable() {
@@ -339,7 +341,7 @@ public class Peripheral extends BluetoothGattCallback {
             //     e.getLocalizedMessage();
             // }
             this.gatt.close();
-            this.gatt = null;
+            // this.gatt = null;
             // Handler handler = new Handler(Looper.getMainLooper());
             // handler.postDelayed(new Runnable() {
             //     @Override
