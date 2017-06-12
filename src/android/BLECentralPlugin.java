@@ -160,10 +160,14 @@ public class BLECentralPlugin extends CordovaPlugin {
 
         if (bluetoothScanner == null) {
             bluetoothScanner = bluetoothAdapter.getBluetoothLeScanner();
-            settings = new ScanSettings.Builder()
+            ScanSettings.Builder sBuilder = new ScanSettings.Builder()
                         .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                        .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
-                        .build();
+
+            if (Build.VERSION.SDK_INT > 22) {
+                    sBuilder.setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
+            }
+            settings = SBuilder.build();
+
         }
 
         boolean validAction = true;
