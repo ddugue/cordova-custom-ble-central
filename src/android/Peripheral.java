@@ -341,6 +341,7 @@ public class Peripheral extends BluetoothGattCallback {
             //     e.getLocalizedMessage();
             // }
             this.gatt.close();
+            this.gatt = null;
             // this.gatt = null;
             // Handler handler = new Handler(Looper.getMainLooper());
             // handler.postDelayed(new Runnable() {
@@ -353,11 +354,11 @@ public class Peripheral extends BluetoothGattCallback {
             // }, 500);
         }
         // We try to force it down we this:
-        if (activity != null){
-            Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
-            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, getDevice().getAddress());
-            activity.getApplicationContext().sendBroadcast(intent, BLUETOOTH_ADMIN_PERM);
-        }
+        // if (activity != null){
+        //     Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+        //     intent.putExtra(BluetoothDevice.EXTRA_DEVICE, getDevice().getAddress());
+        //     activity.getApplicationContext().sendBroadcast(intent, BLUETOOTH_ADMIN_PERM);
+        // }
     }
 
     @Override

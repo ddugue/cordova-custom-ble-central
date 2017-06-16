@@ -395,12 +395,12 @@ public class BLECentralPlugin extends CordovaPlugin {
         // }
 
         // Close all opened gatt connection
-        for (Map.Entry<String, Peripheral> entry : peripherals.entrySet()) {
-            if (entry.getKey() != macAddress && entry.getValue().gatt != null) {
-                entry.getValue().gatt.close();
-                // entry.getValue().gatt = null;
-            }
-        }
+        // for (Map.Entry<String, Peripheral> entry : peripherals.entrySet()) {
+        //     if (entry.getKey() != macAddress && entry.getValue().gatt != null) {
+        //         entry.getValue().gatt.close();
+        //         // entry.getValue().gatt = null;
+        //     }
+        // }
         peripheral.connect(callbackContext, cordova.getActivity());
     }
 
@@ -529,7 +529,7 @@ public class BLECentralPlugin extends CordovaPlugin {
         for(Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<String, Peripheral> entry = iterator.next();
             Peripheral device = entry.getValue();
-            boolean connecting = device.isConnecting();
+            boolean connecting = device.isConnecting() || device.isConnected();
             if (connecting){
                 LOG.d(TAG, "Not removing connecting device: " + device.getDevice().getAddress());
             }
