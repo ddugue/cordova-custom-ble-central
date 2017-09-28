@@ -32,11 +32,22 @@ import org.json.JSONObject;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.io.IOException;
+
+import com.rigado.rigablue.IRigFirmwareUpdateManagerObserver;
+import com.rigado.rigablue.RigFirmwareUpdateManager;
+import com.rigado.rigablue.RigLeBaseDevice;
+import com.rigado.rigablue.RigDfuError;
+import com.rigado.rigablue.RigBluetoothGattCallback;
+import com.rigado.rigablue.RigService;
+import com.rigado.rigablue.RigCoreBluetooth;
+
+import java.net.URL;
 
 /**
  * Peripheral wraps the BluetoothDevice and provides methods to convert to JSON.
  */
-public class Peripheral extends BluetoothGattCallback {
+public class Peripheral extends RigBluetoothGattCallback implements IRigFirmwareUpdateManagerObserver{
 
     // 0x2902 org.bluetooth.descriptor.gatt.client_characteristic_configuration.xml
     //public final static UUID CLIENT_CHARACTERISTIC_CONFIGURATION_UUID = UUID.fromString("00002902-0000-1000-8000-00805F9B34FB");
@@ -59,11 +70,15 @@ public class Peripheral extends BluetoothGattCallback {
     private CallbackContext disconnectCallback;
     private CallbackContext readCallback;
     private CallbackContext writeCallback;
+    private CallbackContext firmwareCallback;
     private Activity activity;
+
+    private RigFirmwareUpdateManager mFirmwareManager;
 
     private Map<String, CallbackContext> notificationCallbacks = new HashMap<String, CallbackContext>();
 
     public Peripheral(BluetoothDevice device, int advertisingRSSI, byte[] scanRecord) {
+        super(RigCoreBluetooth.getInstance().getBluetoothLeService().getRigCoreListener(),RigCoreBluetooth.getInstance().getBluetoothLeService().getBluetoothGattHashMap(),RigCoreBluetooth.getInstance().getBluetoothLeService().getBluetoothGattCallbackHashMap());
 
         this.device = device;
         this.advertisingRSSI = advertisingRSSI;
@@ -245,7 +260,7 @@ public class Peripheral extends BluetoothGattCallback {
 
     @Override
     public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-
+        super.onConnectionStateChange(gatt, status, newState);
         this.gatt = gatt;
 
         if (status == 133) {
@@ -628,6 +643,32 @@ public class Peripheral extends BluetoothGattCallback {
 
     }
 
+    public void updateFirmware(CallbackContext callbackContext, UUID serviceUUID, UUID characteristicUUID, String firmwareURL, byte[] data) {
+        if (mFirmwareManager == null) {
+            mFirmwareManager = new RigFirmwareUpdateManager();
+        }
+        mFirmwareManager.setObserver(this);
+        firmwareCallback = callbackContext;
+
+        try {
+            URL url = new URL(firmwareURL);
+            RigLeBaseDevice device = new RigLeBaseDevice(
+                    this.device,
+                    Arrays.asList(gatt.getService(serviceUUID)),
+                    this.advertisingData
+            );
+
+            mFirmwareManager.updateFirmware(
+                    device,
+                    url.openStream(),
+                    gatt.getService(serviceUUID).getCharacteristic(characteristicUUID),
+                    data
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+            callbackContext.error("Problem opening image firmware");
+        }
+    }
     // Some peripherals re-use UUIDs for multiple characteristics so we need to check the properties
     // and UUID of all characteristics instead of using service.getCharacteristic(characteristicUUID)
     private BluetoothGattCharacteristic findReadableCharacteristic(BluetoothGattService service, UUID characteristicUUID) {
@@ -806,6 +847,39 @@ public class Peripheral extends BluetoothGattCallback {
 
     private String generateHashKey(UUID serviceUUID, BluetoothGattCharacteristic characteristic) {
         return String.valueOf(serviceUUID) + "|" + characteristic.getUuid() + "|" + characteristic.getInstanceId();
+    }
+
+    // FIRMWARE UPDATE
+    @Override
+    public void updateProgress(final int progress) {
+        LOG.d(TAG, "Firmware update progressed ( " + Integer.toString(progress) + "% )");
+        if (firmwareCallback != null) {
+            PluginResult result = new PluginResult(PluginResult.Status.OK, progress);
+            result.setKeepCallback(true);
+            firmwareCallback.sendPluginResult(result);
+        }
+    }
+
+    @Override
+    public void updateStatus(String status, int error) {
+        LOG.d(TAG, "Firmware updated received ( " + status + ")");
+
+    }
+
+    @Override
+    public void didFinishUpdate() {
+        LOG.d(TAG, "Firmware updated finished");
+        if (firmwareCallback != null) {
+            firmwareCallback.success();
+        }
+    }
+
+    @Override
+    public void updateFailed(final RigDfuError error) {
+        LOG.d(TAG, "Firmware updated failed ( " + error.getErrorMessage() + " )");
+        if (firmwareCallback != null) {
+            firmwareCallback.error("Update failed:" + error.getErrorMessage());
+        }
     }
 
 }

@@ -40,6 +40,8 @@ import android.provider.Settings;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaArgs;
 import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CordovaInterface;
+import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.LOG;
 import org.apache.cordova.PermissionHelper;
 import org.apache.cordova.PluginResult;
@@ -48,6 +50,7 @@ import org.json.JSONObject;
 import org.json.JSONException;
 
 import java.util.*;
+import com.rigado.rigablue.RigCoreBluetooth;
 
 public class BLECentralPlugin extends CordovaPlugin {
     // actions
@@ -78,6 +81,10 @@ public class BLECentralPlugin extends CordovaPlugin {
 
     private static final String START_STATE_NOTIFICATIONS = "startStateNotifications";
     private static final String STOP_STATE_NOTIFICATIONS = "stopStateNotifications";
+
+    private static final String HELLO_WORLD = "helloWorld";
+    private static final String UPDATE_FIRMWARE = "updateFirmware";
+
 
     // callbacks
     CallbackContext discoverCallback;
@@ -116,6 +123,12 @@ public class BLECentralPlugin extends CordovaPlugin {
         put(BluetoothAdapter.STATE_TURNING_ON, "turningOn");
     }};
 
+    @Override
+    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
+        super.initialize(cordova, webView);
+        RigCoreBluetooth.initialize(this.cordova.getActivity().getApplicationContext());
+        // your init code here
+    }
     public void onDestroy() {
         removeStateListener();
     }
@@ -309,6 +322,16 @@ public class BLECentralPlugin extends CordovaPlugin {
             this.reportDuplicates = options.optBoolean("reportDuplicates", false);
             findLowEnergyDevices(callbackContext, serviceUUIDs, -1);
 
+        } else if (action.equals(HELLO_WORLD)) {
+            callbackContext.success("Ping!" + args.getJSONArray(0));
+        } else if (action.equals(UPDATE_FIRMWARE)) {
+            String macAddress = args.getString(0);
+            UUID serviceUUID = uuidFromString(args.getString(1));
+            UUID characteristicUUID = uuidFromString(args.getString(2));
+            String firmwareURL = args.getString(3);
+            byte[] data = args.getArrayBuffer(4);
+
+            updateFirmware(callbackContext, macAddress, serviceUUID, characteristicUUID, firmwareURL, data);
         } else {
 
             validAction = false;
@@ -467,6 +490,21 @@ public class BLECentralPlugin extends CordovaPlugin {
 
     }
 
+    private void updateFirmware(CallbackContext callbackContext, String macAddress, UUID serviceUUID, UUID characteristicUUID, String firmwareURL, byte[] activationBytes) {
+        Peripheral peripheral = peripherals.get(macAddress);
+
+        if (peripheral == null) {
+            callbackContext.error("Peripheral " + macAddress + " not found.");
+            return;
+        }
+
+        if (!peripheral.isConnected()) {
+            callbackContext.error("Peripheral " + macAddress + " is not connected.");
+            return;
+        }
+
+        peripheral.updateFirmware(callbackContext, serviceUUID, characteristicUUID, firmwareURL, activationBytes);
+    }
     private void registerNotifyCallback(CallbackContext callbackContext, String macAddress, UUID serviceUUID, UUID characteristicUUID) {
 
         Peripheral peripheral = peripherals.get(macAddress);

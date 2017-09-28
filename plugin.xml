@@ -2,7 +2,7 @@
 <plugin
     xmlns="http://www.phonegap.com/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    id="cordova-plugin-ble-central"
+    id="cordova-plugin-ble-central-neo"
     version="1.1.4">
 
     <name>BLE</name>
@@ -10,8 +10,8 @@
     <license>Apache 2.0</license>
     <keywords>bluetooth, BLE, bluetooth low energy, bluetooth smart</keywords>
 
-    <repo>https://github.com/don/cordova-plugin-ble-central.git</repo>
-    <issue>https://github.com/don/cordova-plugin-ble-central/issues</issue>
+    <repo></repo>
+    <issue></issue>
 
     <dependency id="cordova-plugin-compat" version="^1.0.0" />
 
@@ -68,6 +68,66 @@
             target-dir="src/com/megster/cordova/ble/central"/>
         <source-file src="src/android/UUIDHelper.java"
             target-dir="src/com/megster/cordova/ble/central"/>
+
+        <!-- Library -->
+        <source-file src="src/android/rigablue/IRigCoreBluetoothCommon.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/IRigCoreBluetoothConnectionObserver.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/IRigCoreBluetoothDeviceObserver.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/IRigCoreBluetoothDiscoveryObserver.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/IRigCoreListener.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/IRigDataRequest.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/IRigFirmwareUpdateManagerObserver.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/IRigFirmwareUpdateServiceObserver.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/IRigLeBaseDeviceObserver.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/IRigLeConnectionManagerObserver.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/IRigLeDescriptorObserver.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/IRigLeDiscoveryManagerObserver.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/package-info.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/RigAvailableDeviceData.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/RigBluetoothGattCallback.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/RigCoreBluetooth.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/RigDescriptorReadRequest.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/RigDeviceRequest.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/RigDfuError.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/RigFirmwareUpdateManager.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/RigFirmwareUpdateService.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/RigLeBaseDevice.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/RigLeConnectionManager.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/RigLeDiscoveryManager.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/RigLog.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/RigNotificationStateChangeRequest.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/RigReadRequest.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/RigService.java"
+            target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/RigWriteRequest.java"
+            target-dir="src/com/rigado/rigablue"/>
 
     </platform>
 

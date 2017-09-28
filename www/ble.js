@@ -159,8 +159,15 @@ module.exports = {
 
     stopStateNotifications: function (success, failure) {
         cordova.exec(success, failure, "BLE", "stopStateNotifications", []);
-    }
+    },
 
+    helloWorld: function (success, failure) {
+        cordova.exec(success, failure, "BLE", "helloWorld", ["12"]);
+    },
+
+    updateFirmware: function (device_id, service_uuid, characteristic_uuid, firmware_url, value, success, failure) {
+        cordova.exec(success, failure, "BLE", "updateFirmware", [device_id, service_uuid, characteristic_uuid, firmware_url, value]);
+    }
 };
 
 module.exports.withPromises = {
@@ -170,6 +177,8 @@ module.exports.withPromises = {
     connect: module.exports.connect,
     startNotification: module.exports.startNotification,
     startStateNotifications: module.exports.startStateNotifications,
+
+    helloWorld: module.exports.helloWorld,
 
     stopScan: function() {
         return new Promise(function(resolve, reject) {
