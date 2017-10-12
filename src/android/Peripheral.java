@@ -266,7 +266,6 @@ public class Peripheral extends RigBluetoothGattCallback implements IRigFirmware
         if (status == 133) {
             LOG.d(TAG, "Received error 133 (" + newState + ")");
             this.badDisconnect = true;
-            this.disconnect(null);
             if (disconnectCallback != null) {
                 disconnectCallback.error(this.asJSONObject("Error status 133 (State:" + String.valueOf(newState) + ")"));
             }
@@ -274,6 +273,7 @@ public class Peripheral extends RigBluetoothGattCallback implements IRigFirmware
             if (connectCallback != null) {
                 connectCallback.error(this.asJSONObject("Error status 133 (State:" + String.valueOf(newState) + ")"));
             }
+            this.disconnect(null);
 
             // this.cleanUp(false);
         } else if (newState == BluetoothGatt.STATE_CONNECTED) {
