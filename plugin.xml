@@ -39,6 +39,39 @@
         <!-- frameworks -->
         <framework src="CoreBluetooth.framework" />
 
+        <!-- library -->
+        <header-file src="src/ios/rigablue/RigAvailableDeviceData.h" target-dir="BLECentralPlugin/rigablue" />
+        <source-file src="src/ios/rigablue/RigAvailableDeviceData.m" target-dir="BLECentralPlugin/rigablue" />
+
+        <header-file src="src/ios/rigablue/RigCoreBluetoothConnectionObserver.h" target-dir="BLECentralPlugin/rigablue" />
+        <header-file src="src/ios/rigablue/RigCoreBluetoothDiscoveryObserver.h" target-dir="BLECentralPlugin/rigablue" />
+        <header-file src="src/ios/rigablue/Rigablue.h" target-dir="BLECentralPlugin/rigablue" />
+        <header-file src="src/ios/rigablue/RigDfuError.h" target-dir="BLECentralPlugin/rigablue" />
+
+        <header-file src="src/ios/rigablue/RigCoreBluetoothInterface.h" target-dir="BLECentralPlugin/rigablue" />
+        <source-file src="src/ios/rigablue/RigCoreBluetoothInterface.m" target-dir="BLECentralPlugin/rigablue" />
+
+        <header-file src="src/ios/rigablue/RigDeviceRequest.h" target-dir="BLECentralPlugin/rigablue" />
+        <source-file src="src/ios/rigablue/RigDeviceRequest.m" target-dir="BLECentralPlugin/rigablue" />
+
+        <header-file src="src/ios/rigablue/RigFirmwareUpdateManager.h" target-dir="BLECentralPlugin/rigablue" />
+        <source-file src="src/ios/rigablue/RigFirmwareUpdateManager.m" target-dir="BLECentralPlugin/rigablue" />
+
+        <header-file src="src/ios/rigablue/RigFirmwareUpdateRequest.h" target-dir="BLECentralPlugin/rigablue" />
+        <source-file src="src/ios/rigablue/RigFirmwareUpdateRequest.m" target-dir="BLECentralPlugin/rigablue" />
+
+        <header-file src="src/ios/rigablue/RigFirmwareUpdateService.h" target-dir="BLECentralPlugin/rigablue" />
+        <source-file src="src/ios/rigablue/RigFirmwareUpdateService.m" target-dir="BLECentralPlugin/rigablue" />
+
+        <header-file src="src/ios/rigablue/RigLeBaseDevice.h" target-dir="BLECentralPlugin/rigablue" />
+        <source-file src="src/ios/rigablue/RigLeBaseDevice.m" target-dir="BLECentralPlugin/rigablue" />
+
+        <header-file src="src/ios/rigablue/RigLeConnectionManager.h" target-dir="BLECentralPlugin/rigablue" />
+        <source-file src="src/ios/rigablue/RigLeConnectionManager.m" target-dir="BLECentralPlugin/rigablue" />
+
+        <header-file src="src/ios/rigablue/RigLeDiscoveryManager.h" target-dir="BLECentralPlugin/rigablue" />
+        <source-file src="src/ios/rigablue/RigLeDiscoveryManager.m" target-dir="BLECentralPlugin/rigablue" />
+
         <preference name="BLUETOOTH_USAGE_DESCRIPTION" default=" " />
         <config-file target="*-Info.plist" parent="NSBluetoothPeripheralUsageDescription">
             <string>$BLUETOOTH_USAGE_DESCRIPTION</string>

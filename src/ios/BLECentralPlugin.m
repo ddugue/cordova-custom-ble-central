@@ -17,6 +17,8 @@
 // limitations under the License.
 
 #import "BLECentralPlugin.h"
+#import "rigablue/RigFirmwareUpdateManager.h"
+#import "rigablue/RigCoreBluetoothInterface.h"
 #import <Cordova/CDV.h>
 
 @interface BLECentralPlugin() {
@@ -24,6 +26,59 @@
 }
 - (CBPeripheral *)findPeripheralByUUID:(NSString *)uuid;
 - (void)stopScanTimer:(NSTimer *)timer;
+@end
+
+@implementation BLEUpdateFirmwareDelegate
+
+- (id)initWithCallback:(NSString *)callback plugin:(BLECentralPlugin *)plugin
+{
+  NSLog(@"Init with callback");
+  self = [super init];
+  if(self) {
+    NSLog(@"_init: %@", self);
+    callbackId = callback;
+    plugin = plugin;
+  }
+  return self;
+}
+
+- (void)updateProgress:(float)progress
+{
+  NSLog(@"Update progress");
+  int data = (int)progress * 100; // send RAW data to Javascript
+
+  CDVPluginResult *pluginResult = nil;
+  pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:data];
+  [pluginResult setKeepCallbackAsBool:TRUE]; // keep for notification
+  [plugin.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
+}
+
+- (void)updateStatus:(NSString*)status errorCode:(RigDfuError_t)error
+{
+  NSLog(@"Update status");
+    CDVPluginResult *pluginResult = nil;
+    if (error != DfuError_None) {
+      NSString *temp = [NSString stringWithFormat:@"%@%d", status, error];
+
+      pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:temp];
+      [plugin.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
+    } else {
+
+      pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:status];
+      [plugin.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
+    }
+}
+
+- (void)didFinishUpdate
+{
+  NSLog(@"Finish update");
+    int data = 100; // send RAW data to Javascript
+
+    CDVPluginResult *pluginResult = nil;
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:data];
+    [pluginResult setKeepCallbackAsBool:FALSE]; // do NOT keep for notification
+    [plugin.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
+}
 @end
 
 @implementation BLECentralPlugin
@@ -47,6 +102,7 @@
     writeCallbacks = [NSMutableDictionary new];
     notificationCallbacks = [NSMutableDictionary new];
     stopNotificationCallbacks = [NSMutableDictionary new];
+    updateFirmwareCallbacks = [NSMutableDictionary new];
     bluetoothStates = [NSDictionary dictionaryWithObjectsAndKeys:
                        @"unknown", @(CBCentralManagerStateUnknown),
                        @"resetting", @(CBCentralManagerStateResetting),
@@ -56,6 +112,7 @@
                        @"on", @(CBCentralManagerStatePoweredOn),
                        nil];
     readRSSICallbacks = [NSMutableDictionary new];
+    [[RigCoreBluetoothInterface sharedInstance] startUpCentralManager];
 }
 
 #pragma mark - Cordova Plugin Methods
@@ -91,6 +148,7 @@
     CBPeripheral *peripheral = [self findPeripheralByUUID:uuid];
 
     [connectCallbacks removeObjectForKey:uuid];
+    [updateFirmwareCallbacks removeObjectForKey:uuid];
 
     if (peripheral && peripheral.state != CBPeripheralStateDisconnected) {
         [manager cancelPeripheralConnection:peripheral];
@@ -210,6 +268,47 @@
         [peripheral setNotifyValue:NO forCharacteristic:characteristic];
         // callback sent from peripheral:didUpdateNotificationStateForCharacteristic:error:
 
+    }
+
+}
+
+// success callback is called on notification
+// updateFirmware: function (device_id, service_uuid, characteristic_uuid, firmware_url, value, success, failure) {
+- (void)updateFirmware:(CDVInvokedUrlCommand*)command {
+    NSLog(@"Updating firmware");
+
+    NSString *firmwareUrl = [command.arguments objectAtIndex:3];
+    NSLog(@"Weird firmwareimage function");
+    NSURL *uri = [NSURL URLWithString:firmwareUrl];
+    NSData *firmwareImage = [NSData dataWithContentsOfURL:uri];
+    BLECommandContext *context = [self getData:command prop:CBCharacteristicPropertyWrite]; // TODO name this better
+    NSLog(@"Weird value function");
+    NSArray *value = [command.arguments objectAtIndex:4];
+    NSInteger len = [value count];
+    uint8_t arr[len];
+    for (int i = 0 ; i < len; i ++)
+    {
+      arr[i] = (uint8_t)value[i];
+      NSLog(@"data byte chunk : %x", arr[i]);
+    }
+
+    NSLog(@"Going into context");
+    if (context) {
+        CBPeripheral *peripheral = [context peripheral];
+        CBCharacteristic *characteristic = [context characteristic];
+        if (characteristic == nil)
+          {
+            NSLog(@"Characteristic is nil!");
+          }
+        RigLeBaseDevice *dev = [[RigLeBaseDevice alloc] initWithPeripheral:peripheral];
+        BLEUpdateFirmwareDelegate *del = [[BLEUpdateFirmwareDelegate alloc] initWithCallback:[command.callbackId copy] plugin:self];
+        RigFirmwareUpdateManager *updateManager = [[RigFirmwareUpdateManager alloc] init];
+        updateManager.delegate = del;
+        // ImageSize:(uint32_t)firmwareImage.length
+        NSLog(@"Setting Key");
+        NSString *key = [peripheral uuidAsString];
+        [updateFirmwareCallbacks setObject: updateManager forKey: key];
+        [updateManager updateFirmware:dev image:firmwareImage  activateChar:characteristic activateCommand:arr activateCommandLen:sizeof(arr)];
     }
 
 }

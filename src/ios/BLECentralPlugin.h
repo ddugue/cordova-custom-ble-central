@@ -21,6 +21,7 @@
 
 #import <Cordova/CDV.h>
 #import <CoreBluetooth/CoreBluetooth.h>
+#import "rigablue/RigFirmwareUpdateManager.h"
 #import "BLECommandContext.h"
 #import "CBPeripheral+Extensions.h"
 
@@ -34,6 +35,7 @@
     NSMutableDictionary *stopNotificationCallbacks;
     NSMutableDictionary *connectCallbackLatches;
     NSMutableDictionary *readRSSICallbacks;
+    NSMutableDictionary *updateFirmwareCallbacks;
 }
 
 @property (strong, nonatomic) NSMutableSet *peripherals;
@@ -60,10 +62,18 @@
 - (void)startStateNotifications:(CDVInvokedUrlCommand *)command;
 - (void)stopStateNotifications:(CDVInvokedUrlCommand *)command;
 
+- (void)updateFirmware:(CDVInvokedUrlCommand *)command;
+
 - (void)onReset;
 
 - (void)readRSSI:(CDVInvokedUrlCommand *)command;
 
 @end
 
+@interface BLEUpdateFirmwareDelegate : NSObject <RigFirmwareUpdateManagerDelegate> {
+  BLECentralPlugin *plugin;
+  NSString *callbackId;
+}
+- (id)initWithCallback:(NSString *)callback plugin:(BLECentralPlugin *)plugin;
+@end
 #endif
