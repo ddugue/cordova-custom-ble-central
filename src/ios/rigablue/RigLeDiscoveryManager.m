@@ -79,6 +79,7 @@ static id<RigLeDiscoveryManagerDelegate> delegate;
 
 - (void)startDiscovery:(RigDeviceRequest*)request
 {
+  NSLog(@"Started discovery");
     [discoveredDevicesLock lock];
     [discoveredDevices removeAllObjects];
     [discoveredDevicesLock unlock];
@@ -144,6 +145,8 @@ static id<RigLeDiscoveryManagerDelegate> delegate;
 #pragma mark - RigCoreBluetoothDiscoveryObserver Delegate methods
 - (void)didDiscoverDevice:(CBPeripheral *)peripheral advertisementData:(NSDictionary *)advData rssi:(NSNumber *)rssi
 {
+  NSLog(@"Discovered device RigLeDiscoveryManager");
+  NSLog(@"%@", peripheral.name);
     BOOL found = NO;
 
     RigAvailableDeviceData *availableDevice = nil;

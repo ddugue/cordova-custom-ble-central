@@ -119,7 +119,7 @@
 
 - (void)connect:(CDVInvokedUrlCommand *)command {
 
-    NSLog(@"connect");
+    NSLog(@"CONNECT");
     NSString *uuid = [command.arguments objectAtIndex:0];
 
     CBPeripheral *peripheral = [self findPeripheralByUUID:uuid];
@@ -281,15 +281,17 @@
     NSLog(@"Weird firmwareimage function");
     NSURL *uri = [NSURL URLWithString:firmwareUrl];
     NSData *firmwareImage = [NSData dataWithContentsOfURL:uri];
-    BLECommandContext *context = [self getData:command prop:CBCharacteristicPropertyWrite]; // TODO name this better
+    BLECommandContext *context = [self getData:command prop:CBCharacteristicPropertyWriteWithoutResponse];
     NSLog(@"Weird value function");
     NSArray *value = [command.arguments objectAtIndex:4];
     NSInteger len = [value count];
     uint8_t arr[len];
     for (int i = 0 ; i < len; i ++)
     {
-      arr[i] = (uint8_t)value[i];
-      NSLog(@"data byte chunk : %x", arr[i]);
+      NSLog(@"class: %@", [value[i] class]);
+      NSNumber *n = value[i];
+      arr[i] = (uint8_t)n.intValue;
+      NSLog(@"data byte chunk: %x", arr[i]);
     }
 
     NSLog(@"Going into context");
@@ -308,7 +310,7 @@
         NSLog(@"Setting Key");
         NSString *key = [peripheral uuidAsString];
         [updateFirmwareCallbacks setObject: updateManager forKey: key];
-        [updateManager updateFirmware:dev image:firmwareImage  activateChar:characteristic activateCommand:arr activateCommandLen:sizeof(arr)];
+        [updateManager updateFirmware:dev image:firmwareImage activateChar:characteristic activateCommand:arr activateCommandLen:sizeof(arr)];
     }
 
 }

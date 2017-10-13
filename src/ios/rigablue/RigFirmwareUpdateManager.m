@@ -158,6 +158,9 @@ typedef enum FirmwareManagerState_enum
 {
     RigDfuError_t result = DfuError_None;
     NSLog(@"__updateFirmware__");
+    if (delegate == nil){
+      NSLog(@"Why is delegate nil?");
+    }
 
     isPatchUpdate = NO;
     imageSize = (UInt32)firmwareImage.length;
@@ -245,6 +248,9 @@ typedef enum FirmwareManagerState_enum
         [delegate updateStatus:@"Searching for Update Service..." errorCode:DfuError_None];
     }
 
+    if (delegate == nil){
+      NSLog(@"Delegate is now null :(");
+    }
     return result;
 }
 
@@ -764,6 +770,10 @@ typedef enum FirmwareManagerState_enum
         //knowing that each packet has been received and the total size that has been transferred thus far.
         totalBytesSent = (value[1] + (value[2] << 8) + (value[3] << 16) + (value[4] << 24)) & 0xFFFFFFFF;
 
+        NSLog(@"Progress!");
+        if (delegate == nil) {
+          NSLog(@"Delegate is nil :(");
+        }
         [delegate updateProgress:(float)((float)totalBytesSent / (float)[self getImageSize])];
 
         //If we haven't sent the last packet yet, then keep sending packets.  Once sent, we will notify the app
@@ -860,6 +870,8 @@ typedef enum FirmwareManagerState_enum
 #pragma mark - RigLeDiscoveryManagerDelegate methods
 - (void)didDiscoverDevice:(RigAvailableDeviceData *)device
 {
+  NSLog(@"Discovered device");
+  NSLog(@"%@", device.peripheral.name);
     if ([device.peripheral.name isEqual:@"RigDfu"] && device.rssi.integerValue > -65 && device.rssi.integerValue < 0) {
 
         [[RigLeDiscoveryManager sharedInstance] stopDiscoveringDevices];
