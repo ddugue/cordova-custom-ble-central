@@ -245,7 +245,7 @@ typedef enum FirmwareManagerState_enum
         NSArray *uuidList = @[dfuServiceUuid200, dfuServiceUuid300];
         RigDeviceRequest *dr = [RigDeviceRequest deviceRequestWithUuidList:uuidList timeout:DFU_SEARCH_TIMEOUT delegate:self allowDuplicates:YES];
         [dm discoverDevices:dr];
-        [delegate updateStatus:@"Searching for Update Service..." errorCode:DfuError_None];
+        [delegate updateStatus:baseDevice.peripheral status:@"Searching for Update Service..." errorCode:DfuError_None];
     }
 
     if (delegate == nil){
@@ -289,8 +289,8 @@ typedef enum FirmwareManagerState_enum
     RigDfuError_t result = [firmwareUpdateService writeDataToControlPoint:resetCommand withLen:1 shouldGetResponse:YES];
 
     if (result == DfuError_None) {
-        if ([delegate respondsToSelector:@selector(updateCanceled)]) {
-            [delegate updateCanceled];
+      if ([delegate respondsToSelector:@selector(updateCanceled:)]) {
+        [delegate updateCanceled:baseDevice.peripheral];
         }
         [self cleanUpAfterFailure];
     }
@@ -379,7 +379,7 @@ typedef enum FirmwareManagerState_enum
             //TODO: Clean up after failure
             return result;
         }
-        [delegate updateStatus:@"Writing Device Update Size and Type" errorCode:0];
+        [delegate updateStatus:baseDevice.peripheral status:@"Writing Device Update Size and Type" errorCode:0];
     }
     else
     {
@@ -399,7 +399,7 @@ typedef enum FirmwareManagerState_enum
             //TODO: Clean up after failure
             return result;
         }
-        [delegate updateStatus:@"Writing Device Update Size" errorCode:0];
+        [delegate updateStatus:baseDevice.peripheral status:@"Writing Device Update Size" errorCode:0];
     }
 
     return DfuError_None;
@@ -422,7 +422,7 @@ typedef enum FirmwareManagerState_enum
         //TODO: Clean up after failure
         return result;
     }
-    [delegate updateStatus:@"Enabling Notifications" errorCode:0];
+    [delegate updateStatus:baseDevice.peripheral status:@"Enabling Notifications" errorCode:0];
     return DfuError_None;
 }
 
@@ -497,7 +497,7 @@ typedef enum FirmwareManagerState_enum
 
     [self deterimeLastPacketSize];
 
-    [delegate updateStatus:@"Transferring New Device Software" errorCode:0];
+    [delegate updateStatus:baseDevice.peripheral status:@"Transferring New Device Software" errorCode:0];
     RigDfuError_t result = [self sendPacket];
     if (result != DfuError_None) {
         [self firmwareUpdateFailedFromError:result withErrorMessage:@"Failed to start transfer of image data."];
@@ -568,7 +568,7 @@ typedef enum FirmwareManagerState_enum
         [self firmwareUpdateFailedFromError:result withErrorMessage:@"Failed to start firmware validation."];
         return result;
     }
-    [delegate updateStatus:@"Validating Transferred Device Software" errorCode:DfuError_None];
+    [delegate updateStatus:baseDevice.peripheral status:@"Validating Transferred Device Software" errorCode:DfuError_None];
     return DfuError_None;
 }
 
@@ -591,7 +591,7 @@ typedef enum FirmwareManagerState_enum
         return result;
     }
 
-    [delegate updateStatus:@"Activating Updated Device Software" errorCode:DfuError_None];
+    [delegate updateStatus:baseDevice.peripheral status:@"Activating Updated Device Software" errorCode:DfuError_None];
     return DfuError_None;
 }
 
@@ -609,7 +609,7 @@ typedef enum FirmwareManagerState_enum
         isReceivingFirmwareImage = NO;
         isInitPacketSent = NO;
         isPatchInitPacketSent = NO;
-        [delegate updateProgress:0.0f];
+        [delegate updateProgress:baseDevice.peripheral progress:0.0f];
         packetNumber = 0;
     }
     RigDfuError_t result = [firmwareUpdateService enableControlPointNotifications];
@@ -628,8 +628,8 @@ typedef enum FirmwareManagerState_enum
     if (state == State_FirmwareUpdateCanceled) {
         RigDfuError_t result = [self sendCancelCommand];
         if (result != DfuError_None) {
-            if ([delegate respondsToSelector:@selector(cancelFailedWithErrorCode:)]) {
-                [delegate cancelFailedWithErrorCode:result];
+            if ([delegate respondsToSelector:@selector(cancelFailedWithErrorCode:error)]) {
+              [delegate cancelFailedWithErrorCode:baseDevice.peripheral error:result];
             }
             NSLog(@"Error occured with Firmware Update Cancel");
         }
@@ -647,7 +647,7 @@ typedef enum FirmwareManagerState_enum
         //TODO: Clean up after failure
         //return result;
     }
-    [delegate updateStatus:@"Initializing Device Firmware Update" errorCode:DfuError_None];
+    [delegate updateStatus:baseDevice.peripheral status:@"Initializing Device Firmware Update" errorCode:DfuError_None];
 }
 
 /**
@@ -661,7 +661,7 @@ typedef enum FirmwareManagerState_enum
     if (state == State_FinishedRadioImageTransfer) {
         //If the firmware update is now complete, finalize the update and notify the app.
         [NSThread sleepForTimeInterval:2.0];
-        [delegate didFinishUpdate];
+        [delegate didFinishUpdate:baseDevice.peripheral];
     }
 
     //This functionality behaves in tandem with the commands being written to the control point
@@ -774,7 +774,7 @@ typedef enum FirmwareManagerState_enum
         if (delegate == nil) {
           NSLog(@"Delegate is nil :(");
         }
-        [delegate updateProgress:(float)((float)totalBytesSent / (float)[self getImageSize])];
+        [delegate updateProgress:baseDevice.peripheral progress:(float)((float)totalBytesSent / (float)[self getImageSize])];
 
         //If we haven't sent the last packet yet, then keep sending packets.  Once sent, we will notify the app
         //that the firmware image has been fully transferred.
@@ -784,7 +784,7 @@ typedef enum FirmwareManagerState_enum
             }
         } else {
             NSLog(@"Last packet notification received");
-            [delegate updateProgress:1.0];
+            [delegate updateProgress:baseDevice.peripheral progress:1.0];
         }
     } else if (opCode == RECEIVED_OPCODE && request == RECEIVE_FIRMWARE_IMAGE) {
         NSLog(@"Opcode: Receive Firmware Image");
@@ -792,7 +792,7 @@ typedef enum FirmwareManagerState_enum
             //This is sent by the DFU after receiving the all data for the firmware image. At this point, the DFU
             //needs to validate the firmware image, so that command is sent to the device.
             NSLog(@"Firmware transfer successful");
-            [delegate updateStatus:@"Successfully Transferred Software.  Validating..." errorCode:DfuError_None];
+            [delegate updateStatus:baseDevice.peripheral status:@"Successfully Transferred Software.  Validating..." errorCode:DfuError_None];
             RigDfuError_t result = [self validateFirmware];
             if(result != DfuError_None) {
                 [self firmwareUpdateFailedFromError:result withErrorMessage:@"Could not initialize firmware validation!"];
@@ -805,16 +805,16 @@ typedef enum FirmwareManagerState_enum
         }
     } else if(opCode == RECEIVED_OPCODE && request == RECEIVE_PATCH_IMAGE) {
         if(value[2] == OPERATION_PATCH_NEED_MORE_DATA) {
-            [delegate updateProgress:((float)(packetNumber * 20) / (float)[self getImageSize])];
+            [delegate updateProgress:baseDevice.peripheral progress:((float)(packetNumber * 20) / (float)[self getImageSize])];
             //TODO: Report progress
             if(!shouldStopSendingPackets) {
                 //update delegate
                 [self sendPacket];
             }
         } else if(value[2] == OPERATION_SUCCESS) {
-            [delegate updateProgress:1.0];
+          [delegate updateProgress:baseDevice.peripheral progress:1.0];
             NSLog(@"All patch data sent successfully");
-            [delegate updateStatus:@"Successfully Transferred Software.  Validating..." errorCode:DfuError_None];
+            [delegate updateStatus:baseDevice.peripheral status:@"Successfully Transferred Software.  Validating..." errorCode:DfuError_None];
             RigDfuError_t result = [self validateFirmware];
             if(result != DfuError_None) {
                 [self firmwareUpdateFailedFromError:result withErrorMessage:@"Could not initialize firmware validation!"];
@@ -832,7 +832,7 @@ typedef enum FirmwareManagerState_enum
             //Once the firmware is validated, the firmware transfer is considered successful and the activation command
             //is sent to the DFU.
             if(state == State_TransferringRadioImage) {
-                [delegate updateStatus:@"Device Software Validated Successfully!" errorCode:DfuError_None];
+                [delegate updateStatus:baseDevice.peripheral status:@"Device Software Validated Successfully!" errorCode:DfuError_None];
                 state = State_FinishedRadioImageTransfer;
                 RigDfuError_t result = [self activateFirmware];
                 if(result != DfuError_None) {
@@ -855,8 +855,8 @@ typedef enum FirmwareManagerState_enum
 }
 
 - (void)firmwareUpdateFailedFromError:(RigDfuError_t)error withErrorMessage:(NSString *)errorMessage {
-    if ([delegate respondsToSelector:@selector(updateFailed:errorCode:)]) {
-        [delegate updateFailed:errorMessage errorCode:error];
+  if ([delegate respondsToSelector:@selector(updateFailed:status:errorCode:)]) {
+    [delegate updateFailed:baseDevice.peripheral status:errorMessage errorCode:error];
     }
 }
 

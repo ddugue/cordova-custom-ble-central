@@ -26,7 +26,7 @@
  *
  *  @param progress The update progress between 0 and 1
  */
-- (void)updateProgress:(float)progress;
+- (void)updateProgress:(CBPeripheral *)peripheral progress:(float)progress;
 
 /**
  *  Reports a status of the firmware update to the App.  This is a string that can be displayed to the user
@@ -35,31 +35,31 @@
  *  @param status The status
  *  @param error  The error code
  */
-- (void)updateStatus:(NSString*)status errorCode:(RigDfuError_t)error;
+- (void)updateStatus:(CBPeripheral *)peripheral status:(NSString*)status errorCode:(RigDfuError_t)error;
 
 /**
  *  This is called when a firmware update is complete and the new firmware is activated on the device.
  */
-- (void)didFinishUpdate;
+- (void)didFinishUpdate:(CBPeripheral *)peripheral;
 
 @optional
 /**
  *  This method is called if an update fails for any given reason.
  *
  */
-- (void)updateFailed:(NSString*)status errorCode:(RigDfuError_t)error;
+- (void)updateFailed:(CBPeripheral *)peripheral status:(NSString*)status errorCode:(RigDfuError_t)error;
 
 /**
  *  This method is called when the firmware update is canceled.
  *
  */
-- (void)updateCanceled;
+- (void)updateCanceled:(CBPeripheral *)peripheral;
 
 /**
  *  This method is called when there is an error with the cancel firmware update.
  *
  */
-- (void)cancelFailedWithErrorCode:(RigDfuError_t)error;
+- (void)cancelFailedWithErrorCode:(CBPeripheral *)peripheral error:(RigDfuError_t)error;
 
 @end
 
