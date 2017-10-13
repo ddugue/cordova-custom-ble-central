@@ -303,14 +303,16 @@
             NSLog(@"Characteristic is nil!");
           }
         RigLeBaseDevice *dev = [[RigLeBaseDevice alloc] initWithPeripheral:peripheral];
-        BLEUpdateFirmwareDelegate *del = [[BLEUpdateFirmwareDelegate alloc] initWithCallback:[command.callbackId copy] plugin:self];
+        // BLEUpdateFirmwareDelegate *del = [[BLEUpdateFirmwareDelegate alloc] initWithCallback:[command.callbackId copy] plugin:self];
         RigFirmwareUpdateManager *updateManager = [[RigFirmwareUpdateManager alloc] init];
-        updateManager.delegate = del;
+        updateManager.delegate = self;
         // ImageSize:(uint32_t)firmwareImage.length
         NSLog(@"Setting Key");
         NSString *key = [peripheral uuidAsString];
-        [updateFirmwareCallbacks setObject: updateManager forKey: key];
         [updateManager updateFirmware:dev image:firmwareImage activateChar:characteristic activateCommand:arr activateCommandLen:sizeof(arr)];
+
+        NSString *callback = [command.callbackId copy];
+        [updateFirmwareCallbacks setObject: callback forKey: key];
     }
 
 }
@@ -919,4 +921,48 @@
     return @"Unknown state";
 }
 
+#pragma mark - delegate update firmware
+- (void)updateProgress:(CBPeripheral *)peripheral progress:(float)progress
+{
+  NSLog(@"Update progress");
+  NSString *key = [peripheral uuidAsString];
+  NSString *callbackId = [updateFirmwareCallbacks objectForKey:key];
+  int data = (int)progress * 100; // send RAW data to Javascript
+
+  CDVPluginResult *pluginResult = nil;
+  pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:data];
+  [pluginResult setKeepCallbackAsBool:TRUE]; // keep for notification
+  [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
+}
+
+- (void)updateStatus:(CBPeripheral *)peripheral status:(NSString*)status errorCode:(RigDfuError_t)error
+{
+  NSLog(@"Update status");
+    CDVPluginResult *pluginResult = nil;
+    NSString *key = [peripheral uuidAsString];
+    NSString *callbackId = [updateFirmwareCallbacks objectForKey:key];
+    if (error != DfuError_None) {
+      NSString *temp = [NSString stringWithFormat:@"%@%d", status, error];
+
+      pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:temp];
+      [plugin.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
+    } else {
+
+      pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:status];
+      [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
+    }
+}
+
+- (void)didFinishUpdate:(CBPeripheral *)peripheral
+{
+  NSLog(@"Finish update");
+    int data = 100; // send RAW data to Javascript
+
+    NSString *key = [peripheral uuidAsString];
+    NSString *callbackId = [updateFirmwareCallbacks objectForKey:key];
+    CDVPluginResult *pluginResult = nil;
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:data];
+    [pluginResult setKeepCallbackAsBool:FALSE]; // do NOT keep for notification
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
+}
 @end
