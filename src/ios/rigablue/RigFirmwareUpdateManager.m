@@ -269,8 +269,8 @@ typedef enum FirmwareManagerState_enum
     state = State_FirmwareUpdateCanceled;
     RigDfuError_t result = [self sendCancelCommand];
     if (result != DfuError_ControlPointCharacteristicMissing && result != DfuError_None) {
-        if ([delegate respondsToSelector:@selector(cancelFailedWithErrorCode:)]) {
-            [delegate cancelFailedWithErrorCode:result];
+      if ([delegate respondsToSelector:@selector(cancelFailedWithErrorCode:error:)]) {
+        [delegate cancelFailedWithErrorCode:baseDevice.peripheral error:result];
 
         }
         NSLog(@"Error occured with Firmware Update Cancel");
@@ -628,7 +628,7 @@ typedef enum FirmwareManagerState_enum
     if (state == State_FirmwareUpdateCanceled) {
         RigDfuError_t result = [self sendCancelCommand];
         if (result != DfuError_None) {
-            if ([delegate respondsToSelector:@selector(cancelFailedWithErrorCode:error)]) {
+          if ([delegate respondsToSelector:@selector(cancelFailedWithErrorCode:error:)]) {
               [delegate cancelFailedWithErrorCode:baseDevice.peripheral error:result];
             }
             NSLog(@"Error occured with Firmware Update Cancel");
@@ -872,7 +872,9 @@ typedef enum FirmwareManagerState_enum
 {
   NSLog(@"Discovered device");
   NSLog(@"%@", device.peripheral.name);
-    if ([device.peripheral.name isEqual:@"RigDfu"] && device.rssi.integerValue > -65 && device.rssi.integerValue < 0) {
+  NSLog(@"%x", device.rssi.integerValue);
+    if ([device.peripheral.name isEqual:@"RigDfu"] && device.rssi.integerValue > -85 && device.rssi.integerValue < 0) {
+    // if ([device.peripheral.name isEqual:@"RigDfu"] && device.rssi.integerValue > -65 && device.rssi.integerValue < 0) {
 
         [[RigLeDiscoveryManager sharedInstance] stopDiscoveringDevices];
         [RigLeConnectionManager sharedInstance].delegate = self;

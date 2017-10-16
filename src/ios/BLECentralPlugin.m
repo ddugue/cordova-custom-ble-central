@@ -148,7 +148,6 @@
     CBPeripheral *peripheral = [self findPeripheralByUUID:uuid];
 
     [connectCallbacks removeObjectForKey:uuid];
-    [updateFirmwareCallbacks removeObjectForKey:uuid];
 
     if (peripheral && peripheral.state != CBPeripheralStateDisconnected) {
         [manager cancelPeripheralConnection:peripheral];
@@ -309,12 +308,10 @@
         // ImageSize:(uint32_t)firmwareImage.length
         NSLog(@"Setting Key");
         NSString *key = [peripheral uuidAsString];
-        [updateManager updateFirmware:dev image:firmwareImage activateChar:characteristic activateCommand:arr activateCommandLen:sizeof(arr)];
-
         NSString *callback = [command.callbackId copy];
         [updateFirmwareCallbacks setObject: callback forKey: key];
+        [updateManager updateFirmware:dev image:firmwareImage activateChar:characteristic activateCommand:arr activateCommandLen:sizeof(arr)];
     }
-
 }
 
 - (void)isEnabled:(CDVInvokedUrlCommand*)command {
@@ -926,9 +923,18 @@
 {
   NSLog(@"Update progress");
   NSString *key = [peripheral uuidAsString];
+  NSLog(@"Key: %@", key);
+  if (peripheral == nil) {
+    NSLog(@"Peripheral is nil");
+  }
+  if (key == nil) {
+    NSLog(@"Peripheral UUID is nil");
+  }
   NSString *callbackId = [updateFirmwareCallbacks objectForKey:key];
-  int data = (int)progress * 100; // send RAW data to Javascript
+  NSLog(@"callback ID %@", callbackId);
+  int data = progress * 100; // send RAW data to Javascript
 
+  NSLog(@"Progress %x", data);
   CDVPluginResult *pluginResult = nil;
   pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:data];
   [pluginResult setKeepCallbackAsBool:TRUE]; // keep for notification
@@ -938,19 +944,40 @@
 - (void)updateStatus:(CBPeripheral *)peripheral status:(NSString*)status errorCode:(RigDfuError_t)error
 {
   NSLog(@"Update status");
-    CDVPluginResult *pluginResult = nil;
-    NSString *key = [peripheral uuidAsString];
-    NSString *callbackId = [updateFirmwareCallbacks objectForKey:key];
+  CDVPluginResult *pluginResult = nil;
+  NSString *key = [peripheral uuidAsString];
+  NSLog(@"Key: %@", key);
+  if (peripheral == nil) {
+    NSLog(@"Peripheral is nil");
+  }
+  if (key == nil) {
+    NSLog(@"Peripheral UUID is nil");
+  }
+  NSString *callbackId = [updateFirmwareCallbacks objectForKey:key];
+  NSLog(@"callback ID %@", callbackId);
     if (error != DfuError_None) {
       NSString *temp = [NSString stringWithFormat:@"%@%d", status, error];
 
       pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:temp];
-      [plugin.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
+      [pluginResult setKeepCallbackAsBool:FALSE]; // do NOT keep for notification
+      [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
     } else {
 
       pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:status];
+      [pluginResult setKeepCallbackAsBool:TRUE]; // keep for notification
       [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
     }
+}
+
+- (void)updateFailed:(CBPeripheral *)peripheral status:(NSString*)status errorCode:(RigDfuError_t)error
+{
+  CDVPluginResult *pluginResult = nil;
+  NSString *key = [peripheral uuidAsString];
+  NSString *callbackId = [updateFirmwareCallbacks objectForKey:key];
+  NSLog(@"Update failed");
+  pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:status];
+  [pluginResult setKeepCallbackAsBool:FALSE]; // do NOT keep for notification
+  [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
 }
 
 - (void)didFinishUpdate:(CBPeripheral *)peripheral
@@ -959,7 +986,14 @@
     int data = 100; // send RAW data to Javascript
 
     NSString *key = [peripheral uuidAsString];
+  if (peripheral == nil) {
+    NSLog(@"Peripheral is nil");
+  }
+  if (key == nil) {
+    NSLog(@"Peripheral UUID is nil");
+  }
     NSString *callbackId = [updateFirmwareCallbacks objectForKey:key];
+    NSLog(@"callback ID %@", callbackId);
     CDVPluginResult *pluginResult = nil;
     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:data];
     [pluginResult setKeepCallbackAsBool:FALSE]; // do NOT keep for notification
