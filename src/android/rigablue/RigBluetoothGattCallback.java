@@ -44,7 +44,8 @@ public class RigBluetoothGattCallback extends BluetoothGattCallback {
         try {
             Method localMethod = gatt.getClass().getMethod("refresh");
             if (localMethod != null) {
-                return (boolean) localMethod.invoke(gatt);
+                Object obj = localMethod.invoke(gatt);
+                return (Boolean) obj;
             }
         }
         catch (Exception localException) {
