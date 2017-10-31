@@ -42,9 +42,10 @@ public class RigDeviceRequest {
     /**
      * @return Returns the list of UUIDs for this request
      */
-    public String[] getUuidList() {
+    public UUID[] getUuidList() {
         return mUuidList;
     }
+
 
     /**
      * @return Returns the length of time, in milliseconds, for which the discovery should be
@@ -63,11 +64,21 @@ public class RigDeviceRequest {
      * @param timeout The length of time, in milliseconds, for which discovery should run using this
      *                request object.
      */
-    public RigDeviceRequest(String[] uuidList, int timeout) {
+    public RigDeviceRequest(UUID[] uuidList, int timeout) {
         mUuidList = uuidList;
         mTimeout = timeout;
     }
 
+    public RigDeviceRequest(String[] idList, int timeout) {
+        mUuidList = null;
+        if (idList != null) {
+            mUuidList = new UUID[idList.length];
+            for(int i = 0; i < idList.length; i++) {
+                mUuidList[i] = UUID.fromString(idList[i]);
+            }
+        }
+        mTimeout = timeout;
+    }
     /**
      * @return Returns the current discovery observer object
      */

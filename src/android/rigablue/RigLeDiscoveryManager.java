@@ -94,16 +94,7 @@ public class RigLeDiscoveryManager implements IRigCoreBluetoothDiscoveryObserver
         if (request.getTimeout() > 0) {
             searchTime = request.getTimeout();
         }
-        String[] idList = request.getUuidList();
-        UUID uuidArrayList[];
-        if (idList != null) {
-            uuidArrayList = new UUID[idList.length];
-            for(int i = 0; i < uuidArrayList.length; i++) {
-                uuidArrayList[i] = UUID.fromString(request.getUuidList()[i]);
-            }
-        } else {
-            uuidArrayList = null;
-        }
+        UUID[] uuidArrayList = request.getUuidList();
 
         mIsDiscoveryRunning = true;
         mObserver = request.getObserver();

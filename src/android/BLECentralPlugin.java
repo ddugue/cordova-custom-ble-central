@@ -51,8 +51,12 @@ import org.json.JSONException;
 
 import java.util.*;
 import com.rigado.rigablue.RigCoreBluetooth;
+import com.rigado.rigablue.RigLeBaseDevice;
+import com.rigado.rigablue.IRigLeBaseDeviceObserver;
+import com.rigado.rigablue.IRigLeConnectionManagerObserver;
+import com.rigado.rigablue.IRigLeDiscoveryManagerObserver;
 
-public class BLECentralPlugin extends CordovaPlugin {
+public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryManagerObserver, IRigLeConnectionManagerObserver, IRigLeBaseDeviceObserver {
     // actions
     private static final String SCAN = "scan";
     private static final String START_SCAN = "startScan";
@@ -102,6 +106,16 @@ public class BLECentralPlugin extends CordovaPlugin {
     // key is the MAC Address
     Map<String, Peripheral> peripherals = new LinkedHashMap<String, Peripheral>();
 
+    // Callbacks
+    Map<String, Peripheral> connectCallbacks = new LinkedHashMap<String, CallbackContext>();
+    Map<String, Peripheral> disconnectCallbacks = new LinkedHashMap<String, CallbackContext>();
+    Map<String, Peripheral> writeCallbacks = new LinkedHashMap<String, CallbackContext>();
+
+    // Rigado
+    private RigCoreBluetooth mRigCoreBluetooth;
+    private RigLeConnectionManager mRigConnectionManager;
+    private RigLeDiscoveryManager mRigDiscoveryManager;
+
     // scan options
     boolean reportDuplicates = false;
 
@@ -127,6 +141,9 @@ public class BLECentralPlugin extends CordovaPlugin {
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
         RigCoreBluetooth.initialize(this.cordova.getActivity().getApplicationContext());
+        mRigCoreBluetooth = RigCoreBluetooth.getInstance();
+        mRigConnectionManager = RigLeConnectionManager.getInstance();
+        mRigDiscoveryManager = RigLeDiscoveryManager.getInstance();
         // your init code here
     }
     public void onDestroy() {
@@ -189,19 +206,22 @@ public class BLECentralPlugin extends CordovaPlugin {
 
             UUID[] serviceUUIDs = parseServiceUUIDList(args.getJSONArray(0));
             int scanSeconds = args.getInt(1);
+
             resetScanOptions();
-            findLowEnergyDevices(callbackContext, serviceUUIDs, scanSeconds);
+            scan(callbackContext, serviceUUIDs, scanSeconds);
 
         } else if (action.equals(START_SCAN)) {
 
             UUID[] serviceUUIDs = parseServiceUUIDList(args.getJSONArray(0));
             resetScanOptions();
-            findLowEnergyDevices(callbackContext, serviceUUIDs, -1);
+            scan(callbackContext, serviceUUIDs, -1);
 
         } else if (action.equals(STOP_SCAN)) {
 
             // bluetoothAdapter.stopLeScan(this);
-            bluetoothScanner.stopScan(this.mScanCallback);
+            stopDiscoverCallback = callbackContext;
+            mRigDiscoveryManager.stopDiscoveringDevices();
+            // bluetoothScanner.stopScan(this.mScanCallback);
             callbackContext.success();
 
         } else if (action.equals(LIST)) {
@@ -320,7 +340,7 @@ public class BLECentralPlugin extends CordovaPlugin {
 
             resetScanOptions();
             this.reportDuplicates = options.optBoolean("reportDuplicates", false);
-            findLowEnergyDevices(callbackContext, serviceUUIDs, -1);
+            scan(callbackContext, serviceUUIDs, -1);
 
         } else if (action.equals(HELLO_WORLD)) {
             callbackContext.success("Ping!" + args.getJSONArray(0));
@@ -547,6 +567,21 @@ public class BLECentralPlugin extends CordovaPlugin {
     }
 
 
+    private void scan(CallbackContext callbackContext, UUID[] serviceUUIDs, int scanSeconds) {
+        if(!PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION)) {
+            // save info so we can call this method again after permissions are granted
+            permissionCallback = callbackContext;
+            this.serviceUUIDs = serviceUUIDs;
+            this.scanSeconds = scanSeconds;
+            PermissionHelper.requestPermission(this, REQUEST_ACCESS_COARSE_LOCATION, ACCESS_COARSE_LOCATION);
+            return;
+        }
+
+        RigDeviceRequest req = new RigDeviceRequest(serviceUUIDs, scanSeconds);
+        req.setObserver(this);
+        mRigDiscoveryManager.startDiscoverDevices(req);
+    }
+
     private void findLowEnergyDevices(CallbackContext callbackContext, UUID[] serviceUUIDs, int scanSeconds) {
 
         if(!PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION)) {
@@ -715,7 +750,7 @@ public class BLECentralPlugin extends CordovaPlugin {
         switch(requestCode) {
             case REQUEST_ACCESS_COARSE_LOCATION:
                 LOG.d(TAG, "User granted Coarse Location Access");
-                findLowEnergyDevices(permissionCallback, serviceUUIDs, scanSeconds);
+                scan(permissionCallback, serviceUUIDs, scanSeconds);
                 this.permissionCallback = null;
                 this.serviceUUIDs = null;
                 this.scanSeconds = -1;
@@ -734,4 +769,74 @@ public class BLECentralPlugin extends CordovaPlugin {
         this.reportDuplicates = false;
     }
 
+    /// RIGABLUE
+
+    // JSON serialization
+    static JSONObject byteArrayToJSON(byte[] bytes) throws JSONException {
+        JSONObject object = new JSONObject();
+        object.put("CDVType", "ArrayBuffer");
+        object.put("data", Base64.encodeToString(bytes, Base64.NO_WRAP));
+        return object;
+    }
+
+    private JSONObject asJSONObject(RigAvailableDeviceData device)  {
+
+        JSONObject json = new JSONObject();
+
+        try {
+            json.put("name", device.getUncachedName());
+            json.put("id", device.getBluetoothDevice().getAddress()); // mac address
+            json.put("advertising", byteArrayToJSON(device.getScanRecord()));
+            json.put("rssi", device.getRSSI());
+        } catch (JSONException e) { // this shouldn't happen
+            e.printStackTrace();
+        }
+
+        return json;
+    }
+
+    // Discovery manager
+    @Override
+    void didDiscoverDevice(RigAvailableDeviceData device) {
+        if (discoverCallback != null) {
+            PluginResult result = new PluginResult(PluginResult.Status.OK, asJSONObject(device));
+            result.setKeepCallback(true);
+            discoverCallback.sendPluginResult(result);
+        }
+    }
+
+    @Override
+    void discoveryDidTimeout() {}
+
+    @Override
+    void bluetoothPowerStateChanged(boolean enabled) {}
+
+    @Override
+    void bluetoothDoesNotSupported() {}
+
+    // Connection manager
+    @Override
+    void didConnectDevice(RigLeBaseDevice device) {}
+
+    @Override
+    void didDisconnectDevice(BluetoothDevice btDevice) {}
+
+    @Override
+    void deviceConnectionDidFail(RigAvailableDeviceData device) {}
+
+    @Override
+    void deviceConnectionDidTimeout(RigAvailableDeviceData device) {}
+
+    // Device manager
+    @Override
+    void didUpdateValue(RigLeBaseDevice device, BluetoothGattCharacteristic characteristic) {};
+
+    @Override
+    void didUpdateNotifyState(RigLeBaseDevice device, BluetoothGattCharacteristic characteristic) {};
+
+    @Override
+    void didWriteValue(RigLeBaseDevice device, BluetoothGattCharacteristic characteristic) {};
+
+    @Override
+    void discoveryDidComplete(RigLeBaseDevice device) {};
 }

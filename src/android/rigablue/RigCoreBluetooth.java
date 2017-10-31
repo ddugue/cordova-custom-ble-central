@@ -149,7 +149,7 @@ public class RigCoreBluetooth implements IRigCoreListener {
 
     /**
      * The discovery flag is reset here to handle cases where a bluetooth state change is
-     * received while discovery is running. 
+     * received while discovery is running.
      */
     public void init() {
         RigLog.d("__RigCoreBluetooth.init__");
@@ -593,9 +593,9 @@ public class RigCoreBluetooth implements IRigCoreListener {
     public void onActionGattServicesDiscovered(BluetoothDevice bluetoothDevice) {
         RigLog.d("__RigCoreBluetooth.onActionGattServicesDiscovered__");
         RigLog.d("Discovered: " + bluetoothDevice.getAddress());
-            if (mConnectionObserver != null) {
-        mConnectionObserver.didConnectDevice(bluetoothDevice);
-            }
+        if (mConnectionObserver != null) {
+            mConnectionObserver.didConnectDevice(bluetoothDevice);
+        }
     }
 
     @Override
