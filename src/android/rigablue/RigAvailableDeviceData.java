@@ -151,6 +151,10 @@ public class RigAvailableDeviceData {
         return mBluetoothDevice;
     }
 
+    public String getAddress() {
+        return mBluetoothDevice.getAddress();
+    }
+
     /**
      * Compares two available device data objects for equality.  They are equal if their
      * Bluetooth MAC addresses match.

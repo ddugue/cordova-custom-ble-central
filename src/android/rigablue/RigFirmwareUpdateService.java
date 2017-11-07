@@ -42,7 +42,7 @@ public class RigFirmwareUpdateService implements IRigLeConnectionManagerObserver
     public static final String kDisUuidString = "0000180a-0000-1000-8000-00805f9b34fb";
     public static final String kDisFwVersionUuidString = "00002a26-0000-1000-8000-00805f9b34fb";
     public static final String kDisModelNumberUuidString = "00002a24-0000-1000-8000-00805f9b34fb";
-    
+
     private static final String kSecureBootloaderModelNumber = "Rigado Secure DFU";
 
     // UUID strings matching the device we want to update. Each will be assigned to one of the device-specific
@@ -269,7 +269,7 @@ public class RigFirmwareUpdateService implements IRigLeConnectionManagerObserver
         UUID dfuServiceUuid = UUID.fromString(mUpdateDfuServiceUuidString);
         UUID controlPointUuid = UUID.fromString(mUpdateDfuControlPointUuidString);
         UUID packetUuid = UUID.fromString(mUpdateDfuPacketCharUuidString);
-        
+
         UUID disServiceUuid = UUID.fromString(kDisUuidString);
         UUID disFwVersionUuid = UUID.fromString(kDisFwVersionUuidString);
         UUID disModelNumberUuid = UUID.fromString(kDisModelNumberUuidString);
@@ -287,7 +287,7 @@ public class RigFirmwareUpdateService implements IRigLeConnectionManagerObserver
             RigLog.e("Did not find Dfu Service!");
             return false;
         }
-        
+
         if(mDisService == null) {
         	RigLog.e("Did not find Dis service for Bootloader");
         	return false;
@@ -305,7 +305,7 @@ public class RigFirmwareUpdateService implements IRigLeConnectionManagerObserver
             RigLog.e("One or more dfu characteristics missing!");
             return false;
         }
-        
+
         for(BluetoothGattCharacteristic characteristic : mDisService.getCharacteristics()) {
         	if(characteristic.getUuid().equals(disFwVersionUuid)) {
         		mDisFirmwareVersionChar = characteristic;
@@ -313,7 +313,7 @@ public class RigFirmwareUpdateService implements IRigLeConnectionManagerObserver
         		mDisModelNumberChar = characteristic;
         	}
         }
-        
+
         String modelNumber = mDisModelNumberChar.getStringValue(0);
         if(modelNumber.equals(kSecureBootloaderModelNumber)) {
         	mIsSecureDfu = true;
@@ -563,6 +563,9 @@ public class RigFirmwareUpdateService implements IRigLeConnectionManagerObserver
         }
     }
 
+    @Override
+    public void didReadRSSI(RigLeBaseDevice device, int RSSI) {
+    }
     /**
      * Called when the notification state of a characteristic is updated successfully.
      *

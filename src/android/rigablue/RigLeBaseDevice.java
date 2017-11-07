@@ -55,7 +55,7 @@ public class RigLeBaseDevice implements IRigCoreBluetoothDeviceObserver {
     /**
      * The scan response data that was present in the RigAvailableDevice data.
      */
-    private byte[] mScanRecord;
+    private RigAvailableDeviceData mScanRecord;
 
     /**
      * A value indicating if full discovery has been completed for this device object.  This
@@ -100,7 +100,7 @@ public class RigLeBaseDevice implements IRigCoreBluetoothDeviceObserver {
     public RigLeBaseDevice(String deviceName,
                            BluetoothDevice bluetoothDevice,
                            List<BluetoothGattService> serviceList,
-                           byte[] scanRecord) {
+                           RigAvailableDeviceData scanRecord) {
         mBluetoothDevice = bluetoothDevice;
         mName = deviceName;
         mBluetoothGattServices = new ArrayList<BluetoothGattService>();
@@ -129,7 +129,7 @@ public class RigLeBaseDevice implements IRigCoreBluetoothDeviceObserver {
      */
     public RigLeBaseDevice(BluetoothDevice bluetoothDevice,
                            List<BluetoothGattService> serviceList,
-                           byte[] scanRecord) {
+                           RigAvailableDeviceData scanRecord) {
         this(bluetoothDevice.getName(), bluetoothDevice, serviceList, scanRecord);
     }
 
@@ -141,6 +141,45 @@ public class RigLeBaseDevice implements IRigCoreBluetoothDeviceObserver {
     @Override
     public String toString() {
         return (mName + ":" + mBluetoothDevice.getAddress());
+    }
+
+
+    private BluetoothGattService getService(UUID serviceUUID) {
+        for(BluetoothGattService service : serviceList) {
+            if(service.getUuid().equals(serviceUUID)) {
+                return service;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Characteristic finding
+     **/
+    // Some peripherals re-use UUIDs for multiple characteristics so we need to check the properties
+    // and UUID of all characteristics instead of using service.getCharacteristic(characteristicUUID)
+    public BluetoothGattCharacteristic findCharacteristic(UUID serviceUUID, UUID characteristicUUID, int charType) {
+        BluetoothGattCharacteristic characteristic = null;
+
+        BluetoothGattService service = getService(serviceUUID);
+
+        List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
+        for (BluetoothGattCharacteristic c : characteristics) {
+            if ((c.getProperties() & charType) != 0 && characteristicUUID.equals(c.getUuid())) {
+                characteristic = c;
+                break;
+            }
+        }
+
+        // As a last resort, try and find ANY characteristic with this UUID, even if it doesn't have the correct properties
+        if (characteristic == null) {
+            characteristic = service.getCharacteristic(characteristicUUID);
+        }
+        return characteristic;
+    }
+
+    public String getAddress() {
+        return mBluetoothDevice.getAddress();
     }
 
     /**
@@ -182,7 +221,8 @@ public class RigLeBaseDevice implements IRigCoreBluetoothDeviceObserver {
     /**
      * @return Returns the scan record data of the advertisement
      */
-    public byte[] getScanRecord() { return mScanRecord; }
+    public byte[] getScanRecord() { return mScanRecord.getScanRecord(); }
+    public RigAvailableDeviceData getAvailableDeviceData() { return mScanRecord; }
 
     /**
      * @return Returns the state of device discovery
@@ -262,6 +302,16 @@ public class RigLeBaseDevice implements IRigCoreBluetoothDeviceObserver {
         return true;
     }
 
+    /**
+     * Reads the RSSI of the device
+     *
+     * @return If the read property is not set, false is returned; true otherwise
+     */
+    public boolean readRSSI() {
+        RigLog.d("RigLeBaseDevice.readRSSI");
+        RigCoreBluetooth.getInstance().readRSSI(mBluetoothDevice);
+        return true;
+    }
     /**
      * Writes value to the characteristic
      *
@@ -376,6 +426,19 @@ public class RigLeBaseDevice implements IRigCoreBluetoothDeviceObserver {
     public void didWriteValue(BluetoothDevice btDevice, BluetoothGattCharacteristic characteristic) {
         if(mObserver != null) {
             mObserver.didWriteValue(this, characteristic);
+        }
+    }
+
+    /**
+     * This callback is received anytime a write to a characteristic has completed.  This will
+     * be called even if a write is performed using WriteWithoutResponse.
+     * @param btDevice The device for which the characteristic value write finished
+     * @param characteristic The characteristic which had its value written
+     */
+    @Override
+    public void didReadRSSI(BluetoothDevice btDevice, int RSSI) {
+        if(mObserver != null) {
+            mObserver.didReadRSSI(this, RSSI);
         }
     }
 

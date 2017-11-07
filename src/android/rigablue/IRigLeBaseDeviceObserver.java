@@ -57,4 +57,13 @@ public interface IRigLeBaseDeviceObserver {
      */
     void discoveryDidComplete(RigLeBaseDevice device);
 
+    /**
+     * This method is called when the value for a remote read RSSI has been successfully returned by
+     * the low level android APIs.
+     *
+     * @param device The device for which the characteristic value was written
+     * @param characteristic The characteristic which had its value written
+     */
+    void didReadRSSI(RigLeBaseDevice device, int RSSI);
+
 }

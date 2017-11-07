@@ -224,7 +224,7 @@ public class RigService {
             RigLog.w("No outstanding connection request or active connection to " + address);
             return;
         }
-        
+
         new Thread(new Runnable() {
             @Override
             public synchronized void run() {
@@ -237,6 +237,35 @@ public class RigService {
         }).start();
     }
 
+    /**
+     * Disconnects an existing connection or cancel a pending connection. The disconnection result
+     * is reported asynchronously through the
+     * {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
+     * callback.
+     * @param address The address of the destination device.
+     */
+    public synchronized void readRSSI(final String address) {
+        RigLog.d("disconnect");
+        if (mBluetoothAdapter == null) {
+            RigLog.e("BluetoothAdapter not initialized");
+            return;
+        }
+
+        if (mBluetoothGattHashMap.get(address) == null) {
+            RigLog.w("No outstanding connection request or active connection to " + address);
+            return;
+        }
+
+        new Thread(new Runnable() {
+            @Override
+            public synchronized void run() {
+                BluetoothGatt gatt = mBluetoothGattHashMap.get(address);
+                if(gatt != null) {
+                    mBluetoothGattHashMap.get(address).readRemoteRssi();
+                }
+            }
+        }).start();
+    }
     /**
      * After using a given BLE device, the app must call this method to ensure resources are
      * released properly.

@@ -344,6 +344,12 @@ public class RigCoreBluetooth implements IRigCoreListener {
         read(request);
     }
 
+    public void readRSSI(BluetoothDevice device) {
+        RigLog.d("__RigCoreBluetooth.readRSSI__");
+        IRigDataRequest request = new RigRSSIRequest(device);
+        read(request);
+    }
+
     public void writeCharacteristic(BluetoothDevice device, BluetoothGattCharacteristic characteristic,
                                     byte [] value) {
         RigLog.d("__RigCoreBluetooth.writeCharacteristic__");
@@ -560,6 +566,12 @@ public class RigCoreBluetooth implements IRigCoreListener {
     @Override
     public void onActionGattReadRemoteRssi(BluetoothDevice bluetoothDevice, int rssi) {
         RigLog.d("__RigCoreBluetooth.onActionGattReadRemoteRssi__ : " + bluetoothDevice.getAddress() + " rssi: " + rssi);
+        mIsDataOpInProgress = false;
+        RigLeBaseDevice baseDevice = getRigLeBaseDeviceForBluetoothDevice(bluetoothDevice);
+        if(baseDevice != null) {
+            baseDevice.didWriteValue(bluetoothDevice, characteristic);
+        }
+        nextOp();
     }
 
     @Override

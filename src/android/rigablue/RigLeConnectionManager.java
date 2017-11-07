@@ -53,7 +53,7 @@ public class RigLeConnectionManager implements IRigCoreBluetoothConnectionObserv
      * successful connection.  The advertisement data may or may not be useful depending on
      * application needs.
      */
-    private HashMap<BluetoothDevice, byte[]> mAdvertisingDataList;
+    private HashMap<BluetoothDevice, RigAvailableDeviceData[]> mAdvertisingDataList;
 
     /**
      * Semaphore protection for the connected devices list.
@@ -71,7 +71,7 @@ public class RigLeConnectionManager implements IRigCoreBluetoothConnectionObserv
     RigLeConnectionManager() {
         RigCoreBluetooth.getInstance().setConnectionObserver(this);
         mConnectedDevices = new ArrayList<RigLeBaseDevice>();
-        mAdvertisingDataList = new HashMap<BluetoothDevice, byte[]>();
+        mAdvertisingDataList = new HashMap<BluetoothDevice, RigAvailableDeviceData[]>();
         mMinimumConnectionTimeout = 5000;
     }
 
@@ -100,13 +100,17 @@ public class RigLeConnectionManager implements IRigCoreBluetoothConnectionObserv
         }
         mConnectingDevice = device;
         long connTimeout = timeout;
-        byte [] scanRecord = device.getScanRecord();
-        if(scanRecord != null) {
-            mAdvertisingDataList.put(device.getBluetoothDevice(), scanRecord);
-        }
+        // byte [] scanRecord = device.getScanRecord();
+        // if(scanRecord != null) {
+        mAdvertisingDataList.put(device.getBluetoothDevice(), device);
+        // }
 
         RigCoreBluetooth.getInstance().connectPeripheral(device.getBluetoothDevice(), connTimeout);
     }
+
+    // public void connectDevice(RigAvailableDeviceData device, int timeout) {
+    //     this.connectDevice(device.getBluetoothDevice(), timeout);
+    // }
 
     /**
      * To clean up {@link android.bluetooth.BluetoothGatt} objects in a timely manner, you should
@@ -157,15 +161,16 @@ public class RigLeConnectionManager implements IRigCoreBluetoothConnectionObserv
      */
     @Override
     public void didConnectDevice(BluetoothDevice btDevice) {
-        byte [] scanRecord;
-        scanRecord = mAdvertisingDataList.get(btDevice);
+        // byte [] scanRecord;
+        RigAvailableDeviceData scanRecord = mAdvertisingDataList.get(btDevice);
         RigLeBaseDevice baseDevice =
                 new RigLeBaseDevice(
                         mConnectingDevice.getUncachedName(),
                         btDevice,
                         RigCoreBluetooth.getInstance().getServiceList(btDevice.getAddress()),
-                        scanRecord);
-        mAdvertisingDataList.remove(btDevice);
+                        scanRecord
+                        );
+        // mAdvertisingDataList.remove(btDevice);
         RigAvailableDeviceData toRemove = null;
 
 
@@ -227,9 +232,9 @@ public class RigLeConnectionManager implements IRigCoreBluetoothConnectionObserv
     public void connectionDidTimeout(BluetoothDevice btDevice) {
         if (mObserver != null) {
             mObserver.deviceConnectionDidTimeout(mConnectingDevice);
-            if(mAdvertisingDataList.containsKey(btDevice)) {
-                mAdvertisingDataList.remove(btDevice);
-            }
+            // if(mAdvertisingDataList.containsKey(btDevice)) {
+            //     mAdvertisingDataList.remove(btDevice);
+            // }
         }
     }
 
@@ -242,9 +247,9 @@ public class RigLeConnectionManager implements IRigCoreBluetoothConnectionObserv
     public void didFailToConnectDevice(BluetoothDevice btDevice) {
         if (mObserver != null) {
             mObserver.deviceConnectionDidFail(mConnectingDevice);
-            if(mAdvertisingDataList.containsKey(btDevice)) {
-                mAdvertisingDataList.remove(btDevice);
-            }
+            // if(mAdvertisingDataList.containsKey(btDevice)) {
+            //     mAdvertisingDataList.remove(btDevice);
+            // }
         }
     }
 
