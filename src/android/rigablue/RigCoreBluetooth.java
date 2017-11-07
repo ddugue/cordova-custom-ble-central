@@ -569,7 +569,7 @@ public class RigCoreBluetooth implements IRigCoreListener {
         mIsDataOpInProgress = false;
         RigLeBaseDevice baseDevice = getRigLeBaseDeviceForBluetoothDevice(bluetoothDevice);
         if(baseDevice != null) {
-            baseDevice.didWriteValue(bluetoothDevice, characteristic);
+            baseDevice.didReadRSSI(bluetoothDevice, characteristic);
         }
         nextOp();
     }
@@ -597,7 +597,7 @@ public class RigCoreBluetooth implements IRigCoreListener {
         cleanUpConnectionFuture();
         disconnectPeripheral(bluetoothDevice);
         if (mConnectionObserver != null) {
-        mConnectionObserver.didFailToConnectDevice(bluetoothDevice);
+            mConnectionObserver.didFailToConnectDevice(bluetoothDevice);
         }
     }
 
