@@ -558,12 +558,13 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
         device.setObserver(this);
         BluetoothGattCharacteristic characteristic = device.findCharacteristic(serviceUUID, characteristicUUID, BluetoothGattCharacteristic.PROPERTY_NOTIFY);
-        boolean result;
+        boolean result = false;
         if (characteristic != null) {
             notifyCallbacks.put(generateHashKey(macAddress, characteristic), callbackContext);
             result = device.setCharacteristicNotification(characteristic, true);
         } else {
             callbackContext.error("Characteristic " + characteristicUUID + " not found.");
+            return;
         }
 
         if (result == false) {
