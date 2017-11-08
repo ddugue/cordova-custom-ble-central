@@ -139,6 +139,8 @@
             target-dir="src/com/rigado/rigablue"/>
         <source-file src="src/android/rigablue/RigDeviceRequest.java"
             target-dir="src/com/rigado/rigablue"/>
+        <source-file src="src/android/rigablue/RigRSSIRequest.java"
+            target-dir="src/com/rigado/rigablue"/>
         <source-file src="src/android/rigablue/RigDfuError.java"
             target-dir="src/com/rigado/rigablue"/>
         <source-file src="src/android/rigablue/RigFirmwareUpdateManager.java"
