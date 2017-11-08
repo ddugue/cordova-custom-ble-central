@@ -25,12 +25,12 @@ public class RigRSSIRequest implements IRigDataRequest {
 
     private BluetoothDevice mDevice;
 
-    public RigReadRequest(BluetoothDevice device) {
+    public RigRSSIRequest(BluetoothDevice device) {
         mDevice = device;
     }
 
     @Override
     public void post(RigService service) {
-        service.readCharacteristic(mDevice.getAddress());
+        service.readRSSI(mDevice.getAddress());
     }
 }

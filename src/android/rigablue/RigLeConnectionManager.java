@@ -53,7 +53,7 @@ public class RigLeConnectionManager implements IRigCoreBluetoothConnectionObserv
      * successful connection.  The advertisement data may or may not be useful depending on
      * application needs.
      */
-    private HashMap<BluetoothDevice, RigAvailableDeviceData[]> mAdvertisingDataList;
+    private HashMap<BluetoothDevice, RigAvailableDeviceData> mAdvertisingDataList;
 
     /**
      * Semaphore protection for the connected devices list.
@@ -71,7 +71,7 @@ public class RigLeConnectionManager implements IRigCoreBluetoothConnectionObserv
     RigLeConnectionManager() {
         RigCoreBluetooth.getInstance().setConnectionObserver(this);
         mConnectedDevices = new ArrayList<RigLeBaseDevice>();
-        mAdvertisingDataList = new HashMap<BluetoothDevice, RigAvailableDeviceData[]>();
+        mAdvertisingDataList = new HashMap<BluetoothDevice, RigAvailableDeviceData>();
         mMinimumConnectionTimeout = 5000;
     }
 

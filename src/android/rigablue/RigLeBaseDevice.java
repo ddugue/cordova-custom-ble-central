@@ -145,7 +145,7 @@ public class RigLeBaseDevice implements IRigCoreBluetoothDeviceObserver {
 
 
     private BluetoothGattService getService(UUID serviceUUID) {
-        for(BluetoothGattService service : serviceList) {
+        for(BluetoothGattService service : mBluetoothGattServices) {
             if(service.getUuid().equals(serviceUUID)) {
                 return service;
             }

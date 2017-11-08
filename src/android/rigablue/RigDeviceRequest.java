@@ -1,5 +1,7 @@
 package com.rigado.rigablue;
 
+import java.util.UUID;
+
 /**
  *  RigDeviceRequest.java
  *
@@ -23,7 +25,7 @@ public class RigDeviceRequest {
     /**
      * The array of UUIDs that will be searched for during discovery.
      */
-    private String[] mUuidList;
+    private UUID[] mUuidList;
 
     /**
      * Controls the length of time for discovery.  If set to 0, then discovery will run forever.

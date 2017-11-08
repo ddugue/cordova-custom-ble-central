@@ -16,9 +16,12 @@ package com.megster.cordova.ble.central;
 
 import android.Manifest;
 import android.app.Activity;
+import android.util.Base64;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
@@ -50,11 +53,20 @@ import org.json.JSONObject;
 import org.json.JSONException;
 
 import java.util.*;
+import java.net.URL;
+import java.io.IOException;
 import com.rigado.rigablue.RigCoreBluetooth;
 import com.rigado.rigablue.RigLeBaseDevice;
+import com.rigado.rigablue.RigDeviceRequest;
+import com.rigado.rigablue.RigAvailableDeviceData;
+import com.rigado.rigablue.RigLeConnectionManager;
+import com.rigado.rigablue.RigLeDiscoveryManager;
+import com.rigado.rigablue.RigFirmwareUpdateManager;
+import com.rigado.rigablue.RigDfuError;
 import com.rigado.rigablue.IRigLeBaseDeviceObserver;
 import com.rigado.rigablue.IRigLeConnectionManagerObserver;
 import com.rigado.rigablue.IRigLeDiscoveryManagerObserver;
+import com.rigado.rigablue.IRigFirmwareUpdateManagerObserver;
 
 public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryManagerObserver, IRigLeConnectionManagerObserver, IRigLeBaseDeviceObserver, IRigFirmwareUpdateManagerObserver {
     // actions
@@ -215,7 +227,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
         } else if (action.equals(STOP_SCAN)) {
             // Done
 
-            stopDiscoverCallback = callbackContext;
+            // stopDiscoverCallback = callbackContext;
             mRigDiscoveryManager.stopDiscoveringDevices();
             callbackContext.success();
 
@@ -434,9 +446,9 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
         } else {
             RigAvailableDeviceData availableDevice = availableDevices.get(macAddress);
             mRigConnectionManager.cancelConnection(availableDevice);
-            disconnectCallback.success();
-            if(devices.containsKey(btDevice.getAddress())) {
-                devices.remove(btDevice.getAddress());
+            callbackContext.success();
+            if(devices.containsKey(device.getAddress())) {
+                devices.remove(device.getAddress());
             }
         }
     }
@@ -453,7 +465,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
         device.setObserver(this);
         readCallbacks.put(macAddress, callbackContext);
         BluetoothGattCharacteristic characteristic = device.findCharacteristic(serviceUUID, characteristicUUID, BluetoothGattCharacteristic.PROPERTY_READ);
-        bool result = device.readCharacteristic(characteristic);
+        boolean result = device.readCharacteristic(characteristic);
 
         if (result == false) {
             callbackContext.error("Characteristic " + characteristicUUID + " not found.");
@@ -472,7 +484,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
         device.setObserver(this);
         readRSSICallbacks.put(macAddress, callbackContext);
-        bool result = device.readRSSI(characteristic);
+        boolean result = device.readRSSI();
     }
 
     private void write(CallbackContext callbackContext, String macAddress, UUID serviceUUID, UUID characteristicUUID,
@@ -490,7 +502,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
         if (writeType != BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE) {
             writeCallbacks.put(generateHashKey(macAddress, characteristic), callbackContext);
         }
-        bool result = device.writeCharacteristic(characteristic, data);
+        boolean result = device.writeCharacteristic(characteristic, data);
         if (result == false) {
             callbackContext.error("Characteristic " + characteristicUUID + " not found.");
             if (writeType != BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE) {
@@ -518,30 +530,21 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
         try {
             URL url = new URL(firmwareURL);
             RigLeBaseDevice device = devices.get(macAddress);
+            if (device == null) {
+                callbackContext.error("Peripheral " + macAddress + " not found.");
+                return;
+            }
             BluetoothGattCharacteristic characteristic = device.findCharacteristic(serviceUUID, characteristicUUID, BluetoothGattCharacteristic.PROPERTY_WRITE);
             mFirmwareManager.updateFirmware(
                                             device,
                                             url.openStream(),
                                             characteristic,
-                                            data
+                                            activationBytes
             );
         } catch (IOException e) {
             e.printStackTrace();
             callbackContext.error("Problem opening image firmware");
         }
-        Peripheral peripheral = peripherals.get(macAddress);
-
-        if (peripheral == null) {
-            callbackContext.error("Peripheral " + macAddress + " not found.");
-            return;
-        }
-
-        if (!peripheral.isConnected()) {
-            callbackContext.error("Peripheral " + macAddress + " is not connected.");
-            return;
-        }
-
-        peripheral.updateFirmware(callbackContext, serviceUUID, characteristicUUID, firmwareURL, activationBytes);
     }
 
     private void registerNotifyCallback(CallbackContext callbackContext, String macAddress, UUID serviceUUID, UUID characteristicUUID) {
@@ -555,7 +558,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
         device.setObserver(this);
         BluetoothGattCharacteristic characteristic = device.findCharacteristic(serviceUUID, characteristicUUID, BluetoothGattCharacteristic.PROPERTY_NOTIFY);
-        bool result;
+        boolean result;
         if (characteristic != null) {
             notifyCallbacks.put(generateHashKey(macAddress, characteristic), callbackContext);
             result = device.setCharacteristicNotification(characteristic, true);
@@ -616,7 +619,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
         // do we care about consistent order? will peripherals.values() be in order?
         for (RigAvailableDeviceData entry : mRigDiscoveryManager.getDiscoveredDevices()) {
-            json.put(asJSONObject(entry));
+            json.put(this.asJSONObject(entry));
         }
 
         PluginResult result = new PluginResult(PluginResult.Status.OK, json);
@@ -694,13 +697,13 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
         return object;
     }
 
-    private JSONObject asJSONObject(String errorMessage)  {
+    private JSONObject asJSONObject(String errorMessage, String macAddress, String name)  {
 
         JSONObject json = new JSONObject();
 
         try {
-            json.put("name", device.getName());
-            json.put("id", device.getAddress()); // mac address
+            json.put("name", name);
+            json.put("id", macAddress); // mac address
             json.put("errorMessage", errorMessage);
         } catch (JSONException e) { // this shouldn't happen
             e.printStackTrace();
@@ -711,7 +714,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
     private JSONObject asJSONObject(RigLeBaseDevice device) {
 
-        JSONObject json = asJSONObject(device.getAvailableDeviceData());
+        JSONObject json = this.asJSONObject(device.getAvailableDeviceData());
 
         try {
             JSONArray servicesArray = new JSONArray();
@@ -771,7 +774,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
             json.put("name", device.getUncachedName());
             json.put("id", device.getBluetoothDevice().getAddress()); // mac address
             json.put("advertising", byteArrayToJSON(device.getScanRecord()));
-            json.put("rssi", device.getRSSI());
+            json.put("rssi", device.getRssi());
         } catch (JSONException e) { // this shouldn't happen
             e.printStackTrace();
         }
@@ -781,20 +784,20 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
     // Discovery manager
     @Override
-    void didDiscoverDevice(RigAvailableDeviceData device) {
+    public void didDiscoverDevice(RigAvailableDeviceData device) {
         availableDevices.put(device.toString(), device);
         if (discoverCallback != null) {
-            PluginResult result = new PluginResult(PluginResult.Status.OK, asJSONObject(device));
+            PluginResult result = new PluginResult(PluginResult.Status.OK, this.asJSONObject(device));
             result.setKeepCallback(true);
             discoverCallback.sendPluginResult(result);
         }
     }
 
     @Override
-    void discoveryDidTimeout() {}
+    public void discoveryDidTimeout() {}
 
     @Override
-    void bluetoothPowerStateChanged(boolean enabled) {
+    public void bluetoothPowerStateChanged(boolean enabled) {
         String val = "off";
         if (enabled) {
             val = "on";
@@ -807,24 +810,24 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
     }
 
     @Override
-    void bluetoothDoesNotSupported() {}
+    public void bluetoothDoesNotSupported() {}
 
     // Connection manager
     @Override
-    void didConnectDevice(RigLeBaseDevice device) {
+    public void didConnectDevice(RigLeBaseDevice device) {
 
         devices.put(device.getAddress(), device);
         CallbackContext disconnectCallback = disconnectCallbacks.get(device.getAddress());
 
         if (disconnectCallback != null) {
-            disconnectCallback.error(asJSONObject("Peripheral connected while trying to connect"));
+            disconnectCallback.error(this.asJSONObject("Peripheral connected while trying to connect", device.getAddress(), device.getName()));
         }
     }
 
     @Override
-    void didDisconnectDevice(BluetoothDevice btDevice) {
-        if(devices.containsKey(btDevice.getAddress())) {
-            devices.remove(btDevice.getAddress());
+    public void didDisconnectDevice(BluetoothDevice device) {
+        if(devices.containsKey(device.getAddress())) {
+            devices.remove(device.getAddress());
         }
 
         CallbackContext disconnectCallback = disconnectCallbacks.get(device.getAddress());
@@ -834,35 +837,35 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
         CallbackContext connectCallback = connectCallbacks.get(device.getAddress());
         if (connectCallback != null) {
-            connectCallback.error(asJSONObject("Peripheral Disconnected"));
+            connectCallback.error(this.asJSONObject("Peripheral Disconnected", device.getAddress(), device.getName()));
         }
     }
 
     @Override
-    void deviceConnectionDidFail(RigAvailableDeviceData device) {
-        if(devices.containsKey(btDevice.getAddress())) {
-            devices.remove(btDevice.getAddress());
+    public void deviceConnectionDidFail(RigAvailableDeviceData device) {
+        if(devices.containsKey(device.getAddress())) {
+            devices.remove(device.getAddress());
         }
         CallbackContext connectCallback = connectCallbacks.get(device.getAddress());
         if (connectCallback != null) {
-            LOG.e(TAG, "Connection failed. status = " + status);
-            connectCallback.error(asJSONObject("Service discovery failed"));
+            LOG.e(TAG, "Connection failed. status");
+            connectCallback.error(this.asJSONObject("Service discovery failed", device.getAddress(), device.getUncachedName()));
         }
     }
 
     @Override
-    void deviceConnectionDidTimeout(RigAvailableDeviceData device) {
+    public void deviceConnectionDidTimeout(RigAvailableDeviceData device) {
 
         CallbackContext connectCallback = connectCallbacks.get(device.getAddress());
         if (connectCallback != null) {
-            LOG.e(TAG, "Connection failed. status = " + status);
-            connectCallback.error(asJSONObject("Connection timeout"));
+            LOG.e(TAG, "Connection failed. status");
+            connectCallback.error(this.asJSONObject("Connection timeout", device.getAddress(), device.getUncachedName()));
         }
     }
 
     // Device manager
     @Override
-    void didUpdateValue(RigLeBaseDevice device, BluetoothGattCharacteristic characteristic) {
+    public void didUpdateValue(RigLeBaseDevice device, BluetoothGattCharacteristic characteristic) {
         // On read AND on notification
         CallbackContext readCallback = readCallbacks.get(device.getAddress());
 
@@ -881,10 +884,10 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
     };
 
     @Override
-    void didUpdateNotifyState(RigLeBaseDevice device, BluetoothGattCharacteristic characteristic) {};
+    public void didUpdateNotifyState(RigLeBaseDevice device, BluetoothGattCharacteristic characteristic) {};
 
     @Override
-    void didWriteValue(RigLeBaseDevice device, BluetoothGattCharacteristic characteristic) {
+    public void didWriteValue(RigLeBaseDevice device, BluetoothGattCharacteristic characteristic) {
         CallbackContext writeCallback = writeCallbacks.get(generateHashKey(device.getAddress(), characteristic));
         if (writeCallback != null) {
             writeCallback.success();
@@ -893,7 +896,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
     };
 
     @Override
-    void didReadRSSI(RigLeBaseDevice device, int RSSI) {
+    public void didReadRSSI(RigLeBaseDevice device, int RSSI) {
         CallbackContext readRSSICallback = readRSSICallbacks.get(device.getAddress());
 
         if (readRSSICallback != null) {
@@ -903,10 +906,10 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
     };
 
     @Override
-    void discoveryDidComplete(RigLeBaseDevice device) {
+    public void discoveryDidComplete(RigLeBaseDevice device) {
         CallbackContext connectCallback = connectCallbacks.get(device.getAddress());
         if (connectCallback != null) {
-            PluginResult result = new PluginResult(PluginResult.Status.OK, asJSONObject(device));
+            PluginResult result = new PluginResult(PluginResult.Status.OK, this.asJSONObject(device));
             result.setKeepCallback(true);
             connectCallback.sendPluginResult(result);
         }

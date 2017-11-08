@@ -652,11 +652,12 @@ public class Peripheral extends RigBluetoothGattCallback implements IRigFirmware
 
         try {
             URL url = new URL(firmwareURL);
-            RigLeBaseDevice device = new RigLeBaseDevice(
-                    this.device,
-                    Arrays.asList(gatt.getService(serviceUUID)),
-                    this.advertisingData
-            );
+            RigLeBaseDevice device = null;
+            // RigLeBaseDevice device = new RigLeBaseDevice(
+            //         this.device,
+            //         Arrays.asList(gatt.getService(serviceUUID)),
+            //         this.advertisingData
+            // );
 
             mFirmwareManager.updateFirmware(
                     device,

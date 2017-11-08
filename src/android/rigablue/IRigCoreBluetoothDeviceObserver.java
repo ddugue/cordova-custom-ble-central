@@ -47,5 +47,14 @@ public interface IRigCoreBluetoothDeviceObserver {
      */
     void didWriteValue(BluetoothDevice btDevice, BluetoothGattCharacteristic characteristic);
 
+    /**
+     * This method is called when the value for a remote read RSSI has been successfully returned by
+     * the low level android APIs.
+     *
+     * @param device The device for which the characteristic value was written
+     * @param characteristic The characteristic which had its value written
+     */
+    void didReadRSSI(BluetoothDevice device, int RSSI);
+
     void didReadDescriptor(BluetoothDevice btDevice, BluetoothGattDescriptor descriptor);
 }
