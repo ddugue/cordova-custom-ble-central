@@ -35,6 +35,7 @@ public class RigLeDiscoveryManager implements IRigCoreBluetoothDiscoveryObserver
      * If a discovery session is in progress, this flag is true; false otherwise.
      */
     private boolean mIsDiscoveryRunning;
+    private boolean mRepeat;
 
     /**
      * The observer object for this class
@@ -156,6 +157,14 @@ public class RigLeDiscoveryManager implements IRigCoreBluetoothDiscoveryObserver
     }
 
     /**
+     * Set wether we send all data scanning all the time
+     * @param repeat Wether we repeat scan record or not
+     */
+    public void setRepeatable(boolean repeat) {
+        this.mRepeat = repeat;
+    }
+
+    /**
      * @return Returns true if a device discovery is in progress; false otherwise.
      */
     public boolean isDiscoveryRunning() {
@@ -187,6 +196,11 @@ public class RigLeDiscoveryManager implements IRigCoreBluetoothDiscoveryObserver
         for(RigAvailableDeviceData device : mDiscoveredDevices) {
             if(device.getBluetoothDevice().getAddress().equals(btDevice.getAddress())) {
                 found = true;
+                if (this.mRepeat && mObserver != null) {
+                    device.setRssi(rssi);
+                    device.setScanRecord(scanRecord);
+                    mObserver.didDiscoverDevice(device);
+                }
                 break;
             }
         }
@@ -201,7 +215,6 @@ public class RigLeDiscoveryManager implements IRigCoreBluetoothDiscoveryObserver
                 RigLog.d("Observer is null!");
             }
         } else {
-
             mLock.release();
         }
     }

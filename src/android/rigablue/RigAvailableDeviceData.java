@@ -130,6 +130,10 @@ public class RigAvailableDeviceData {
         return mRssi;
     }
 
+    public void setRssi(int rssi) {
+        mRssi = rssi;
+    }
+
     /**
      * @return Returns the system time of the discovery
      */
@@ -142,6 +146,10 @@ public class RigAvailableDeviceData {
      */
     public byte[] getScanRecord() {
         return mScanRecord;
+    }
+
+    public void setScanRecord(byte[] scanRecord) {
+        mScanRecord = scanRecord;
     }
 
     /**
