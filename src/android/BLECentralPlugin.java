@@ -220,6 +220,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
         } else if (action.equals(START_SCAN)) {
             // Done
 
+
             UUID[] serviceUUIDs = parseServiceUUIDList(args.getJSONArray(0));
             resetScanOptions();
             scan(callbackContext, serviceUUIDs, -1);
@@ -429,6 +430,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
         }
         connectCallbacks.put(macAddress, callbackContext);
         RigAvailableDeviceData device = availableDevices.get(macAddress);
+        mRigConnectionManager.setObserver(this);
         mRigConnectionManager.connectDevice(device, 0);
     }
 
@@ -538,6 +540,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
                 return;
             }
             BluetoothGattCharacteristic characteristic = device.findCharacteristic(serviceUUID, characteristicUUID, BluetoothGattCharacteristic.PROPERTY_WRITE);
+            mFirmwareManager.setObserver(this);
             mFirmwareManager.updateFirmware(
                                             device,
                                             url.openStream(),
@@ -686,7 +689,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
      * Reset the BLE scanning options
      */
     private void resetScanOptions() {
-        this.reportDuplicates = false;
+        this.reportDuplicates = true;
     }
 
     /// RIGABLUE
