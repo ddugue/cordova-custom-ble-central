@@ -603,6 +603,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
             return;
         }
 
+        discoverCallback = callbackContext;
         RigDeviceRequest req = new RigDeviceRequest(serviceUUIDs, scanSeconds);
         req.setObserver(this);
         mRigDiscoveryManager.startDiscoverDevices(req);
@@ -786,6 +787,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
     // Discovery manager
     @Override
     public void didDiscoverDevice(RigAvailableDeviceData device) {
+        LOG.d(TAG, "Did discover device " + device.getAddress());
         availableDevices.put(device.toString(), device);
         if (discoverCallback != null) {
             PluginResult result = new PluginResult(PluginResult.Status.OK, this.asJSONObject(device));
@@ -817,6 +819,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
     @Override
     public void didConnectDevice(RigLeBaseDevice device) {
 
+        LOG.d(TAG, "Did connect device " + device.getAddress());
         devices.put(device.getAddress(), device);
         CallbackContext disconnectCallback = disconnectCallbacks.get(device.getAddress());
 
@@ -827,6 +830,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
     @Override
     public void didDisconnectDevice(BluetoothDevice device) {
+        LOG.d(TAG, "Did disconnect device " + device.getAddress());
         if(devices.containsKey(device.getAddress())) {
             devices.remove(device.getAddress());
         }
@@ -844,6 +848,8 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
     @Override
     public void deviceConnectionDidFail(RigAvailableDeviceData device) {
+
+        LOG.e(TAG, "Connection failed for " + device.getAddress());
         if(devices.containsKey(device.getAddress())) {
             devices.remove(device.getAddress());
         }
@@ -868,6 +874,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
     @Override
     public void didUpdateValue(RigLeBaseDevice device, BluetoothGattCharacteristic characteristic) {
         // On read AND on notification
+        LOG.d(TAG, "Did read device " + device.getAddress());
         CallbackContext readCallback = readCallbacks.get(device.getAddress());
 
         if (readCallback != null) {
@@ -889,6 +896,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
     @Override
     public void didWriteValue(RigLeBaseDevice device, BluetoothGattCharacteristic characteristic) {
+        LOG.d(TAG, "Did write to device " + device.getAddress());
         CallbackContext writeCallback = writeCallbacks.get(generateHashKey(device.getAddress(), characteristic));
         if (writeCallback != null) {
             writeCallback.success();
@@ -898,6 +906,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
     @Override
     public void didReadRSSI(RigLeBaseDevice device, int RSSI) {
+        LOG.d(TAG, "Did read RSSI for device " + device.getAddress());
         CallbackContext readRSSICallback = readRSSICallbacks.get(device.getAddress());
 
         if (readRSSICallback != null) {
@@ -908,6 +917,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
     @Override
     public void discoveryDidComplete(RigLeBaseDevice device) {
+        LOG.d(TAG, "Discovery did complete for " + device.getAddress());
         CallbackContext connectCallback = connectCallbacks.get(device.getAddress());
         if (connectCallback != null) {
             PluginResult result = new PluginResult(PluginResult.Status.OK, this.asJSONObject(device));
