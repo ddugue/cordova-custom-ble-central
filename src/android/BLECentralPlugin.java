@@ -518,6 +518,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
     private void updateFirmware(CallbackContext callbackContext, String macAddress, UUID serviceUUID, UUID characteristicUUID, String firmwareURL, byte[] activationBytes) {
 
+
         if (mFirmwareManager == null) {
             mFirmwareManager = new RigFirmwareUpdateManager();
         }
@@ -525,6 +526,8 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
         if (firmwareCallback != null) {
             firmwareCallback.error("Cannot start two firmware updates at the same time");
         }
+
+        mRigDiscoveryManager.setRepeatable(false); // We set to false, because that is the default behavior of discovery manager
         firmwareCallback = callbackContext;
 
         try {
@@ -602,6 +605,8 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
             PermissionHelper.requestPermission(this, REQUEST_ACCESS_COARSE_LOCATION, ACCESS_COARSE_LOCATION);
             return;
         }
+
+        mRigDiscoveryManager.setRepeatable(this.reportDuplicates);
 
         discoverCallback = callbackContext;
         RigDeviceRequest req = new RigDeviceRequest(serviceUUIDs, scanSeconds);
