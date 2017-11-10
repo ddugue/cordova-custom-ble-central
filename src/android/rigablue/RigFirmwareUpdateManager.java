@@ -497,7 +497,7 @@ public class RigFirmwareUpdateManager implements IRigLeDiscoveryManagerObserver,
     /**
      * Max time in milliseconds to discover RigDfu
      */
-    private final static int MAX_RIGDFU_DISCOVERY_TIMEOUT = 20000;
+    private final static int MAX_RIGDFU_DISCOVERY_TIMEOUT = 30000;
     private RigLeDiscoveryManager mDiscoveryManager;
 
     /**
@@ -518,12 +518,6 @@ public class RigFirmwareUpdateManager implements IRigLeDiscoveryManagerObserver,
             e.printStackTrace();
         }
 
-        String[] dfuServiceUuidStrings = mFirmwareUpdateService.getDfuServiceUuidStrings();
-        RigDeviceRequest dr = new RigDeviceRequest(dfuServiceUuidStrings, MAX_RIGDFU_DISCOVERY_TIMEOUT);
-        dr.setObserver(this);
-        mDiscoveryManager.startDiscoverDevices(dr);
-
-        updateStatus("Searching for updater service...");
 
         mFirmwareUpdateService.setInitialNonBootloaderDevice(mUpdateDevice);
         mInitialDeviceAddress = mUpdateDevice.getBluetoothDevice().getAddress();
@@ -533,6 +527,19 @@ public class RigFirmwareUpdateManager implements IRigLeDiscoveryManagerObserver,
         RigLog.d("Send enter bootloader command");
 
         mUpdateDevice.writeCharacteristic(characteristic, command);
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        String[] dfuServiceUuidStrings = mFirmwareUpdateService.getDfuServiceUuidStrings();
+        RigDeviceRequest dr = new RigDeviceRequest(dfuServiceUuidStrings, MAX_RIGDFU_DISCOVERY_TIMEOUT);
+        dr.setObserver(this);
+        mDiscoveryManager.startDiscoverDevices(dr);
+
+        updateStatus("Searching for updater service...");
     }
 
     /**
@@ -1232,7 +1239,7 @@ public class RigFirmwareUpdateManager implements IRigLeDiscoveryManagerObserver,
         RigLog.d("Found dfu device! " + device.toString());
         RigLeDiscoveryManager.getInstance().stopDiscoveringDevices();
         RigLeConnectionManager.getInstance().setObserver(this);
-        RigLeConnectionManager.getInstance().connectDevice(device, 10000);
+        RigLeConnectionManager.getInstance().connectDevice(device, 30000);
     }
 
     /**

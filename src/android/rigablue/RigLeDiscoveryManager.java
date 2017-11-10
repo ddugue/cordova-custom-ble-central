@@ -181,7 +181,7 @@ public class RigLeDiscoveryManager implements IRigCoreBluetoothDiscoveryObserver
      */
     @Override
     public void didDiscoverDevice(BluetoothDevice btDevice, int rssi, byte [] scanRecord) {
-        RigLog.d("RigLeDiscoveryManager.didDiscoverDevice");
+        RigLog.d("RigLeDiscoveryManager.didDiscoverDevice " + btDevice.getName());
 
         boolean found = false;
         if (rssi > 0) {

@@ -139,7 +139,9 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
     // Android 23 requires new permissions for BluetoothLeScanner.startScan()
     private static final String ACCESS_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
+    private static final String ACCESS_FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
     private static final int REQUEST_ACCESS_COARSE_LOCATION = 2;
+    private static final int REQUEST_ACCESS_FINE_LOCATION = 3;
     private static final int PERMISSION_DENIED_ERROR = 20;
     private CallbackContext permissionCallback;
     private UUID[] serviceUUIDs;
@@ -435,7 +437,6 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
     }
 
     private void disconnect(CallbackContext callbackContext, String macAddress) {
-        disconnectCallbacks.put(macAddress, callbackContext);
         RigLeBaseDevice device = devices.get(macAddress);
 
         // Since disconnect was explicitely called, we remove the connectCallback
@@ -444,6 +445,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
         }
 
         if (device != null) {
+            disconnectCallbacks.put(macAddress, callbackContext);
             mRigConnectionManager.disconnectDevice(device);
         } else {
             RigAvailableDeviceData availableDevice = availableDevices.get(macAddress);
@@ -600,12 +602,13 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
 
     private void scan(CallbackContext callbackContext, UUID[] serviceUUIDs, int scanSeconds) {
-        if(!PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION)) {
+        if(!PermissionHelper.hasPermission(this, ACCESS_FINE_LOCATION)) {
             // save info so we can call this method again after permissions are granted
             permissionCallback = callbackContext;
             this.serviceUUIDs = serviceUUIDs;
             this.scanSeconds = scanSeconds;
-            PermissionHelper.requestPermission(this, REQUEST_ACCESS_COARSE_LOCATION, ACCESS_COARSE_LOCATION);
+            // PermissionHelper.requestPermission(this, REQUEST_ACCESS_COARSE_LOCATION, ACCESS_COARSE_LOCATION);
+            PermissionHelper.requestPermission(this, REQUEST_ACCESS_FINE_LOCATION, ACCESS_FINE_LOCATION);
             return;
         }
 
@@ -673,6 +676,13 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
         switch(requestCode) {
             case REQUEST_ACCESS_COARSE_LOCATION:
                 LOG.d(TAG, "User granted Coarse Location Access");
+                scan(permissionCallback, serviceUUIDs, scanSeconds);
+                this.permissionCallback = null;
+                this.serviceUUIDs = null;
+                this.scanSeconds = -1;
+                break;
+            case REQUEST_ACCESS_FINE_LOCATION:
+                LOG.d(TAG, "User granted Fine Location Access");
                 scan(permissionCallback, serviceUUIDs, scanSeconds);
                 this.permissionCallback = null;
                 this.serviceUUIDs = null;
@@ -834,6 +844,15 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
         if (disconnectCallback != null) {
             disconnectCallback.error(this.asJSONObject("Peripheral connected while trying to connect", device.getAddress(), device.getName()));
         }
+        device.setObserver(this);
+        device.runDiscovery();
+
+        // CallbackContext connectCallback = connectCallbacks.get(device.getAddress());
+        // if (connectCallback != null) {
+        //     PluginResult result = new PluginResult(PluginResult.Status.OK, this.asJSONObject(device));
+        //     result.setKeepCallback(true);
+        //     connectCallback.sendPluginResult(result);
+        // }
     }
 
     @Override
@@ -882,6 +901,10 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
     @Override
     public void didUpdateValue(RigLeBaseDevice device, BluetoothGattCharacteristic characteristic) {
         // On read AND on notification
+        if (characteristic == null) {
+            LOG.d(TAG, "Received null characteristic in did update value");
+            return;
+        }
         LOG.d(TAG, "Did read device " + device.getAddress());
         CallbackContext readCallback = readCallbacks.get(device.getAddress());
 

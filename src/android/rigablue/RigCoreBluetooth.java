@@ -267,6 +267,7 @@ public class RigCoreBluetooth implements IRigCoreListener {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void startLollipopScan () {
         // API 21+, except where noted 23+
+        RigLog.d("__RigCoreBluetooht.Lollipop scanning__");
         ScanSettings.Builder builder = new ScanSettings.Builder();
         // Scan using highest duty cycle (this is default for legacy).
         builder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
