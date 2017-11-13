@@ -54,7 +54,10 @@ import org.json.JSONException;
 
 import java.util.*;
 import java.net.URL;
+import java.net.HttpURLConnection;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.BufferedInputStream;
 import com.rigado.rigablue.RigCoreBluetooth;
 import com.rigado.rigablue.RigLeBaseDevice;
 import com.rigado.rigablue.RigDeviceRequest;
@@ -535,7 +538,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
         firmwareCallback = callbackContext;
 
         try {
-            URL url = new URL(firmwareURL);
+
             RigLeBaseDevice device = devices.get(macAddress);
             if (device == null) {
                 callbackContext.error("Peripheral " + macAddress + " not found.");
@@ -543,12 +546,21 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
             }
             BluetoothGattCharacteristic characteristic = device.findCharacteristic(serviceUUID, characteristicUUID, BluetoothGattCharacteristic.PROPERTY_WRITE);
             mFirmwareManager.setObserver(this);
-            mFirmwareManager.updateFirmware(
-                                            device,
-                                            url.openStream(),
-                                            characteristic,
-                                            activationBytes
-            );
+
+            URL url = new URL(firmwareURL);
+
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            try {
+                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+                mFirmwareManager.updateFirmware(
+                                                device,
+                                                in,
+                                                characteristic,
+                                                activationBytes
+                                                );
+            } finally {
+                urlConnection.disconnect();
+            }
         } catch (IOException e) {
             e.printStackTrace();
             callbackContext.error("Problem opening image firmware");
@@ -978,6 +990,9 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
     public void didFinishUpdate() {
         LOG.d(TAG, "Firmware updated finished");
         if (firmwareCallback != null) {
+            PluginResult result = new PluginResult(PluginResult.Status.OK, 100);
+            result.setKeepCallback(true);
+            firmwareCallback.sendPluginResult(result);
             firmwareCallback.success();
             firmwareCallback = null;
         }

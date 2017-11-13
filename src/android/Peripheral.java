@@ -871,6 +871,9 @@ public class Peripheral extends RigBluetoothGattCallback implements IRigFirmware
     public void didFinishUpdate() {
         LOG.d(TAG, "Firmware updated finished");
         if (firmwareCallback != null) {
+            PluginResult result = new PluginResult(PluginResult.Status.OK, 100);
+            result.setKeepCallback(true);
+            firmwareCallback.sendPluginResult(result);
             firmwareCallback.success();
         }
     }

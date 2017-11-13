@@ -508,6 +508,7 @@ public class RigFirmwareUpdateManager implements IRigLeDiscoveryManagerObserver,
      */
     private void sendEnterBootloaderCommand(BluetoothGattCharacteristic characteristic, byte [] command) {
         RigLog.d("__RigFirmwareUpdateManager.sendEnterBootloaderCommand__");
+        RigLog.d("__Command bytes: " + Arrays.toString(command));
 
         mDiscoveryManager = RigLeDiscoveryManager.getInstance();
         mDiscoveryManager.stopDiscoveringDevices();
@@ -529,13 +530,15 @@ public class RigFirmwareUpdateManager implements IRigLeDiscoveryManagerObserver,
         mUpdateDevice.writeCharacteristic(characteristic, command);
 
         try {
-            Thread.sleep(500);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         String[] dfuServiceUuidStrings = mFirmwareUpdateService.getDfuServiceUuidStrings();
         RigDeviceRequest dr = new RigDeviceRequest(dfuServiceUuidStrings, MAX_RIGDFU_DISCOVERY_TIMEOUT);
+
+        mDiscoveryManager.setRepeatable(true);
         dr.setObserver(this);
         mDiscoveryManager.startDiscoverDevices(dr);
 
@@ -737,6 +740,7 @@ public class RigFirmwareUpdateManager implements IRigLeDiscoveryManagerObserver,
     private void startUploadingFile() {
         RigLog.d("__RigFirmwareUpdateManager.startUploadingFile__");
         int size = getImageSize();
+        RigLog.d("__Image size: " + size.toString());
         mTotalPackets = (size / BytesInOnePacket);
         if((size % BytesInOnePacket) != 0) {
             mTotalPackets++;
