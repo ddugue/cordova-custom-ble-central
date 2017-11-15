@@ -308,6 +308,7 @@ public class RigFirmwareUpdateManager implements IRigLeDiscoveryManagerObserver,
                                   BluetoothGattCharacteristic activateCharacteristic,
                                   byte[] activateCommand) {
         RigLog.i("__RigFirmwareUpdateManager.updateFirmware__");
+        resetFlags();
 
         mFirmwareUpdateService = new RigFirmwareUpdateService();
         mFirmwareUpdateService.setObserver(this);
@@ -740,7 +741,7 @@ public class RigFirmwareUpdateManager implements IRigLeDiscoveryManagerObserver,
     private void startUploadingFile() {
         RigLog.d("__RigFirmwareUpdateManager.startUploadingFile__");
         int size = getImageSize();
-        RigLog.d("__Image size: " + size.toString());
+        RigLog.d("__Image size: " + size);
         mTotalPackets = (size / BytesInOnePacket);
         if((size % BytesInOnePacket) != 0) {
             mTotalPackets++;
