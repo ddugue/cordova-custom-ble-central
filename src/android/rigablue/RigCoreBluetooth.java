@@ -6,12 +6,14 @@ import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
+import android.os.ParcelUuid;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.*;
@@ -256,7 +258,14 @@ public class RigCoreBluetooth implements IRigCoreListener {
             public void run() {
                 // Started on background thread; callbacks will fire on the main thread
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    startLollipopScan();
+                    List<ScanFilter> filters = new ArrayList<ScanFilter>();
+
+                    for (UUID mUUID : mUUIDList) {
+                        ScanFilter.Builder filter = new ScanFilter.Builder();
+                        filter.setServiceUuid(new ParcelUuid(mUUID));
+                        filters.add(filter.build());
+                    }
+                    startLollipopScan(filters);
                 } else {
                     startLegacyLeScan();
                 }
@@ -265,7 +274,7 @@ public class RigCoreBluetooth implements IRigCoreListener {
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void startLollipopScan () {
+    private void startLollipopScan (List<ScanFilter> filters) {
         // API 21+, except where noted 23+
         RigLog.d("__RigCoreBluetooht.Lollipop scanning__");
         ScanSettings.Builder builder = new ScanSettings.Builder();
@@ -276,11 +285,13 @@ public class RigCoreBluetooth implements IRigCoreListener {
         // Aggressive mode seems to improve discovery in the short (15s) window we have for DFU
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             builder.setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE);
+            builder.setNumOfMatches(ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT);
+            builder.setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES);
         }
 
         ScanSettings settings = builder.build();
 
-        mBleScanner.startScan(null, settings, mLollipopScanCallback);
+        mBleScanner.startScan(filters, settings, mLollipopScanCallback);
     }
 
     private void startLegacyLeScan () {
@@ -293,6 +304,10 @@ public class RigCoreBluetooth implements IRigCoreListener {
             return;
         }
 
+        if (!mIsDiscovering) {
+            return;
+        }
+
         mIsDiscovering = false;
 
         if((null != mDiscoveryFuture) && !mDiscoveryFuture.isDone()) {
@@ -301,6 +316,7 @@ public class RigCoreBluetooth implements IRigCoreListener {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && mBleScanner != null) {
+            mBleScanner.flushPendingScanResults(mLollipopScanCallback);
             mBleScanner.stopScan(mLollipopScanCallback);
         } else if (mBluetoothAdapter != null) {
             mBluetoothAdapter.stopLeScan(mLegacyScanCallback);

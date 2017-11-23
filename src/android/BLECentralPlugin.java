@@ -171,10 +171,12 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
         // your init code here
     }
     public void onDestroy() {
+        mRigDiscoveryManager.stopDiscoveringDevices();
         removeStateListener();
     }
 
     public void onReset() {
+        mRigDiscoveryManager.stopDiscoveringDevices();
         removeStateListener();
     }
 
