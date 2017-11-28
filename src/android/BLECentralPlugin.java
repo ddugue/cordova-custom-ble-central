@@ -820,8 +820,18 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
     @Override
     public void didDiscoverDevice(RigAvailableDeviceData device) {
         LOG.d(TAG, "Did discover device " + device.getAddress());
+        RigAvailableDeviceData previous = availableDevices.get(device.toString());
+        boolean shouldUpdate = true;
+
+        if (previous != null) {
+            int delta = previous.getRssi() - device.getRssi();
+            if (delta < 8 && delta > -8 && Arrays.equals(device.getScanRecord(), previous.getScanRecord())) {
+                LOG.d(TAG, "Device did not change " + device.getAddress());
+                shouldUpdate = false;
+            }
+        }
         availableDevices.put(device.toString(), device);
-        if (discoverCallback != null) {
+        if (discoverCallback != null && shouldUpdate) {
             PluginResult result = new PluginResult(PluginResult.Status.OK, this.asJSONObject(device));
             result.setKeepCallback(true);
             discoverCallback.sendPluginResult(result);
