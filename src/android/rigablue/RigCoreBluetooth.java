@@ -351,6 +351,11 @@ public class RigCoreBluetooth implements IRigCoreListener {
         mBluetoothLeService.disconnect(device.getAddress());
     }
 
+    void requestHighPriority(BluetoothDevice device) {
+        RigLog.d("__RigCoreBluetooth.requestHighPriority__");
+        mBluetoothLeService.requestHighConnectionPriority(device.getAddress());
+    }
+
     List<BluetoothGattService> getServiceList(final String address) {
         return mBluetoothLeService.getSupportedGattServices(address);
     }

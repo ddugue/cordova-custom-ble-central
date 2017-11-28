@@ -69,6 +69,8 @@ public class RigBluetoothGattCallback extends BluetoothGattCallback {
                 status, newState, gatt.getDevice().getAddress()));
 
         if (newState == BluetoothProfile.STATE_CONNECTED) {
+            // gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+
             if (!mBluetoothGattHashMap.containsKey(gatt.getDevice().getAddress())) {
                 mBluetoothGattHashMap.put(gatt.getDevice().getAddress(), gatt);
             }

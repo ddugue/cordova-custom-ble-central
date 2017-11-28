@@ -16,6 +16,7 @@
 
 package com.rigado.rigablue;
 
+import android.os.Build;
 import android.bluetooth.*;
 import android.content.Context;
 
@@ -193,13 +194,23 @@ public class RigService {
 
                     BluetoothGatt gatt = device.connectGatt(mContext, false, callback);
                     mBluetoothGattHashMap.put(address, gatt);
-                    if (gatt != null) {
-                        refreshDeviceCache(gatt);
-                    }
+                    // if (gatt != null) {
+                    //     refreshDeviceCache(gatt);
+                    // }
                 }
             }
         }).start();
         return true;
+    }
+
+    public void requestHighConnectionPriority(final String address) {
+
+        BluetoothGatt gatt = mBluetoothGattHashMap.get(address);
+        if (gatt != null) {
+            if (Build.VERSION.SDK_INT > 20) {
+                gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+            }
+        }
     }
     public boolean fakeConnect(BluetoothGatt gatt) {
         mBluetoothGattHashMap.put(gatt.getDevice().getAddress(), gatt);

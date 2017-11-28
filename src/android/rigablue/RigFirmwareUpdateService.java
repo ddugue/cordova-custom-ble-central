@@ -251,6 +251,11 @@ public class RigFirmwareUpdateService implements IRigLeConnectionManagerObserver
         }
     }
 
+    public void requestHighPriority() {
+        if(mUpdateDevice != null) {
+            RigCoreBluetooth.getInstance().requestHighPriority(mUpdateDevice.getBluetoothDevice());
+        }
+    }
     /**
      * Instructs the #RigFirmwareUpdateService to search the update device for the DFU and
      * DIS services and to fill out the characteristic objects.

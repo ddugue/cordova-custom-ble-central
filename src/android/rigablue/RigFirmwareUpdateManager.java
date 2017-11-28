@@ -930,6 +930,7 @@ public class RigFirmwareUpdateManager implements IRigLeDiscoveryManagerObserver,
         }
 
         mFirmwareUpdateService.enableControlPointNotifications();
+        mFirmwareUpdateService.requestHighPriority();
     }
 
     /**
