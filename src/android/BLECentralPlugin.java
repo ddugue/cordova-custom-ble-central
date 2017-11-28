@@ -120,6 +120,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
     // key is the MAC Address
     Map<String, RigAvailableDeviceData> availableDevices = new LinkedHashMap<String, RigAvailableDeviceData>();
+    Map<String, RigAvailableDeviceData> cachedDevices = new LinkedHashMap<String, RigAvailableDeviceData>();
     Map<String, RigLeBaseDevice> devices = new LinkedHashMap<String, RigLeBaseDevice>();
 
 
@@ -236,6 +237,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
             // Done
 
             // stopDiscoverCallback = callbackContext;
+            cachedDevices.clear();
             mRigDiscoveryManager.stopDiscoveringDevices();
             callbackContext.success();
 
@@ -820,7 +822,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
     @Override
     public void didDiscoverDevice(RigAvailableDeviceData device) {
         LOG.d(TAG, "Did discover device " + device.getAddress());
-        RigAvailableDeviceData previous = availableDevices.get(device.toString());
+        RigAvailableDeviceData previous = cachedDevices.get(device.toString());
         boolean shouldUpdate = true;
 
         if (previous != null) {
@@ -830,6 +832,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
                 shouldUpdate = false;
             }
         }
+        cachedDevices.put(device.toString(), device);
         availableDevices.put(device.toString(), device);
         if (discoverCallback != null && shouldUpdate) {
             PluginResult result = new PluginResult(PluginResult.Status.OK, this.asJSONObject(device));
