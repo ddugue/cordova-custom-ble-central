@@ -103,6 +103,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
     private static final String HELLO_WORLD = "helloWorld";
     private static final String UPDATE_FIRMWARE = "updateFirmware";
+    private static final String CANCEL_UPDATE_FIRMWARE = "cancelUpdateFirmware";
 
 
     // callbacks
@@ -367,6 +368,8 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
             byte[] data = args.getArrayBuffer(4);
 
             updateFirmware(callbackContext, macAddress, serviceUUID, characteristicUUID, firmwareURL, data);
+        } else if (action.equals(CANCEL_UPDATE_FIRMWARE)) {
+            cancelUpdateFirmware(callbackContext);
         } else {
             validAction = false;
         }
@@ -525,6 +528,15 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
             callbackContext.success();
         }
 
+    }
+
+    // Cancel any firmware update in progress
+    private void cancelUpdateFirmware(CallbackContext callbackContext) {
+        if (mFirmwareManager != null) {
+            firmwareCallback = null;
+            mFirmwareManager.cancelUpdate();
+        }
+        callbackContext.success();
     }
 
     private void updateFirmware(CallbackContext callbackContext, String macAddress, UUID serviceUUID, UUID characteristicUUID, String firmwareURL, byte[] activationBytes) {

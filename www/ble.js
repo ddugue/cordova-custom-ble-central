@@ -167,6 +167,10 @@ module.exports = {
 
     updateFirmware: function (device_id, service_uuid, characteristic_uuid, firmware_url, value, success, failure) {
         cordova.exec(success, failure, "BLE", "updateFirmware", [device_id, service_uuid, characteristic_uuid, firmware_url, value]);
+    },
+
+    cancelUpdateFirmware: function (success, failure) {
+        cordova.exec(success, failure, "BLE", "cancelUpdateFirmware", []);
     }
 };
 
