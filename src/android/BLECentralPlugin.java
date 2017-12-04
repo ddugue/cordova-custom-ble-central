@@ -859,6 +859,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
     @Override
     public void bluetoothPowerStateChanged(boolean enabled) {
+        LOG.d(TAG, "Bluetooth power state changed");
         String val = "off";
         if (enabled) {
             val = "on";

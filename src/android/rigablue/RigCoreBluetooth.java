@@ -521,6 +521,11 @@ public class RigCoreBluetooth implements IRigCoreListener {
                     }
                     case BluetoothAdapter.STATE_ON: {
                         RigLog.w("Bluetooth on");
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            setUpLollipopScanCallback();
+                        }
+
                         if(mDiscoveryObserver!=null) {
                             mDiscoveryObserver.bluetoothPowerStateChanged(true);
                         }
