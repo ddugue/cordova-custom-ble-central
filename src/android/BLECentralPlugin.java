@@ -170,6 +170,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
         mRigCoreBluetooth = RigCoreBluetooth.getInstance();
         mRigConnectionManager = RigLeConnectionManager.getInstance();
         mRigDiscoveryManager = RigLeDiscoveryManager.getInstance();
+        mRigDiscoveryManager.setObserver(this);
         // your init code here
     }
     public void onDestroy() {
