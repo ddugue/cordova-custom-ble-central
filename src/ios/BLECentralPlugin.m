@@ -111,6 +111,9 @@
                        @"off", @(CBCentralManagerStatePoweredOff),
                        @"on", @(CBCentralManagerStatePoweredOn),
                        nil];
+
+    updateManager = [[RigFirmwareUpdateManager alloc] init];
+    updateManager.delegate = self;
     readRSSICallbacks = [NSMutableDictionary new];
     [[RigCoreBluetoothInterface sharedInstance] startUpCentralManager];
 }
@@ -271,6 +274,11 @@
 
 }
 
+- (void)cancelUpdateFirmware:(CDVInvokedUrlCommand*)command {
+    NSLog(@"Cancelling update firmware");
+    [updateManager cancelFirmwareUpdate];
+}
+
 // success callback is called on notification
 // updateFirmware: function (device_id, service_uuid, characteristic_uuid, firmware_url, value, success, failure) {
 - (void)updateFirmware:(CDVInvokedUrlCommand*)command {
@@ -303,8 +311,7 @@
           }
         RigLeBaseDevice *dev = [[RigLeBaseDevice alloc] initWithPeripheral:peripheral];
         // BLEUpdateFirmwareDelegate *del = [[BLEUpdateFirmwareDelegate alloc] initWithCallback:[command.callbackId copy] plugin:self];
-        RigFirmwareUpdateManager *updateManager = [[RigFirmwareUpdateManager alloc] init];
-        updateManager.delegate = self;
+        // RigFirmwareUpdateManager *updateManager = [[RigFirmwareUpdateManager alloc] init];
         // ImageSize:(uint32_t)firmwareImage.length
         NSLog(@"Setting Key");
         NSString *key = [peripheral uuidAsString];

@@ -36,6 +36,7 @@
     NSMutableDictionary *connectCallbackLatches;
     NSMutableDictionary *readRSSICallbacks;
     NSMutableDictionary *updateFirmwareCallbacks;
+    RigFirmwareUpdateManager *updateFirmwareCallbacks;
 }
 
 @property (strong, nonatomic) NSMutableSet *peripherals;
@@ -63,6 +64,7 @@
 - (void)stopStateNotifications:(CDVInvokedUrlCommand *)command;
 
 - (void)updateFirmware:(CDVInvokedUrlCommand *)command;
+- (void)cancelUpdateFirmware:(CDVInvokedUrlCommand *)command;
 
 - (void)onReset;
 
