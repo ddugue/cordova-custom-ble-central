@@ -163,6 +163,9 @@ public class RigLeBaseDevice implements IRigCoreBluetoothDeviceObserver {
 
         BluetoothGattService service = getService(serviceUUID);
 
+        if (service == null) {
+            return null;
+        }
         List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
         for (BluetoothGattCharacteristic c : characteristics) {
             if ((c.getProperties() & charType) != 0 && characteristicUUID.equals(c.getUuid())) {
@@ -391,6 +394,9 @@ public class RigLeBaseDevice implements IRigCoreBluetoothDeviceObserver {
             * just being paused while a read completes. */
             while(mServiceIndex < mBluetoothGattServices.size()) {
                 BluetoothGattService service = mBluetoothGattServices.get(mServiceIndex);
+                if (service == null) {
+                    return;
+                }
                 while (mCharacteristicIndex < service.getCharacteristics().size()) {
                     BluetoothGattCharacteristic c = service.getCharacteristics().get(mCharacteristicIndex);
                     mCharacteristicIndex++;
