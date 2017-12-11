@@ -1024,7 +1024,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
     public void didFinishUpdate() {
         LOG.d(TAG, "Firmware updated finished");
         if (firmwareCallback != null) {
-            PluginResult result = new PluginResult(PluginResult.Status.OK, 100);
+            PluginResult result = new PluginResult(PluginResult.Status.OK, 101);
             result.setKeepCallback(true);
             firmwareCallback.sendPluginResult(result);
             firmwareCallback.success();
