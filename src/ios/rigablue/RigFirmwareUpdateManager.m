@@ -259,9 +259,7 @@ typedef enum FirmwareManagerState_enum
     return [self updateFirmware:request.updateDevice
                           image:request.image
                    activateChar:request.activationCharacteristic
-                activateCommand:(uint8_t *)[request.activationCommand bytes]
-             activateCommandLen:request.activationCommand.length];
-
+                activateCommand:[NSData dataWithBytes:[request.activationCommand bytes] length:request.activationCommand.length]];
 }
 
 - (void)cancelFirmwareUpdate
