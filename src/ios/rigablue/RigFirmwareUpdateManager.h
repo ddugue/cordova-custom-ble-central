@@ -92,7 +92,7 @@
  *  @return YES if successful, NO otherwise
  */
 - (RigDfuError_t)updateFirmware:(RigLeBaseDevice*)device image:(NSData*)firmwareImage activateChar:(CBCharacteristic*)characteristic
-                activateCommand:(uint8_t*)command activateCommandLen:(uint8_t)commandLen;
+                activateCommand:(NSData *)command;
 
 - (RigDfuError_t)performUpdate:(RigFirmwareUpdateRequest*)request;
 
