@@ -290,7 +290,7 @@
     NSData *firmwareImage = [NSData dataWithContentsOfURL:uri];
     BLECommandContext *context = [self getData:command prop:CBCharacteristicPropertyWriteWithoutResponse];
     NSLog(@"Weird value function");
-    NSData *command = [command.arguments objectAtIndex:4];
+    NSData *com = [command.arguments objectAtIndex:4];
     // NSInteger len = [value count];
     // uint8_t arr[len];
     // for (int i = 0 ; i < len; i ++)
@@ -317,7 +317,7 @@
         NSString *key = [peripheral uuidAsString];
         NSString *callback = [command.callbackId copy];
         [updateFirmwareCallbacks setObject: callback forKey: key];
-        [updateManager updateFirmware:dev image:firmwareImage activateChar:characteristic activateCommand:command];
+        [updateManager updateFirmware:dev image:firmwareImage activateChar:characteristic activateCommand:com];
     }
 }
 
