@@ -990,7 +990,7 @@
 - (void)didFinishUpdate:(CBPeripheral *)peripheral
 {
   NSLog(@"Finish update");
-    int data = 100; // send RAW data to Javascript
+    int data = 101; // send RAW data to Javascript
 
     NSString *key = [peripheral uuidAsString];
   if (peripheral == nil) {
