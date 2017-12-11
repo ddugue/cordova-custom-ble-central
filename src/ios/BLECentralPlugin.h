@@ -36,7 +36,7 @@
     NSMutableDictionary *connectCallbackLatches;
     NSMutableDictionary *readRSSICallbacks;
     NSMutableDictionary *updateFirmwareCallbacks;
-    RigFirmwareUpdateManager *updateFirmwareCallbacks;
+    RigFirmwareUpdateManager *updateManager;
 }
 
 @property (strong, nonatomic) NSMutableSet *peripherals;

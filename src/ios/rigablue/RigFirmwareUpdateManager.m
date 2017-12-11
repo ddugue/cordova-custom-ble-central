@@ -154,7 +154,7 @@ typedef enum FirmwareManagerState_enum
 }
 
 - (RigDfuError_t)updateFirmware:(RigLeBaseDevice*)device image:(NSData*)firmwareImage activateChar:(CBCharacteristic*)characteristic
-                activateCommand:(uint8_t*)command activateCommandLen:(uint8_t)commandLen
+                activateCommand:(NSData *)command
 {
     RigDfuError_t result = DfuError_None;
     NSLog(@"__updateFirmware__");
@@ -229,9 +229,9 @@ typedef enum FirmwareManagerState_enum
         }
 
         if (characteristic.properties & CBCharacteristicPropertyWriteWithoutResponse) {
-            [device.peripheral writeValue:[NSData dataWithBytes:command length:commandLen] forCharacteristic:characteristic type:CBCharacteristicWriteWithoutResponse];
+            [device.peripheral writeValue:command forCharacteristic:characteristic type:CBCharacteristicWriteWithoutResponse];
         } else if (characteristic.properties & CBCharacteristicPropertyWrite) {
-            [device.peripheral writeValue:[NSData dataWithBytes:command length:commandLen] forCharacteristic:characteristic type:CBCharacteristicWriteWithResponse];
+            [device.peripheral writeValue:command forCharacteristic:characteristic type:CBCharacteristicWriteWithResponse];
         } else {
             NSLog(@"Update characteristic is not writeable");
             return DfuError_InvalidParameter;
@@ -259,9 +259,7 @@ typedef enum FirmwareManagerState_enum
     return [self updateFirmware:request.updateDevice
                           image:request.image
                    activateChar:request.activationCharacteristic
-                activateCommand:(uint8_t *)[request.activationCommand bytes]
-             activateCommandLen:request.activationCommand.length];
-
+                activateCommand:[NSData dataWithBytes:[request.activationCommand bytes] length:request.activationCommand.length]];
 }
 
 - (void)cancelFirmwareUpdate

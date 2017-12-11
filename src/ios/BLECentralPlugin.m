@@ -290,16 +290,16 @@
     NSData *firmwareImage = [NSData dataWithContentsOfURL:uri];
     BLECommandContext *context = [self getData:command prop:CBCharacteristicPropertyWriteWithoutResponse];
     NSLog(@"Weird value function");
-    NSArray *value = [command.arguments objectAtIndex:4];
-    NSInteger len = [value count];
-    uint8_t arr[len];
-    for (int i = 0 ; i < len; i ++)
-    {
-      NSLog(@"class: %@", [value[i] class]);
-      NSNumber *n = value[i];
-      arr[i] = (uint8_t)n.intValue;
-      NSLog(@"data byte chunk: %x", arr[i]);
-    }
+    NSData *com = [command.arguments objectAtIndex:4];
+    // NSInteger len = [value count];
+    // uint8_t arr[len];
+    // for (int i = 0 ; i < len; i ++)
+    // {
+    //   NSLog(@"class: %@", [value[i] class]);
+    //   NSNumber *n = value[i];
+    //   arr[i] = (uint8_t)n.intValue;
+    //   NSLog(@"data byte chunk: %x", arr[i]);
+    // }
 
     NSLog(@"Going into context");
     if (context) {
@@ -317,7 +317,7 @@
         NSString *key = [peripheral uuidAsString];
         NSString *callback = [command.callbackId copy];
         [updateFirmwareCallbacks setObject: callback forKey: key];
-        [updateManager updateFirmware:dev image:firmwareImage activateChar:characteristic activateCommand:arr activateCommandLen:sizeof(arr)];
+        [updateManager updateFirmware:dev image:firmwareImage activateChar:characteristic activateCommand:com];
     }
 }
 
