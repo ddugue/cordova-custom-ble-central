@@ -28,59 +28,6 @@
 - (void)stopScanTimer:(NSTimer *)timer;
 @end
 
-@implementation BLEUpdateFirmwareDelegate
-
-- (id)initWithCallback:(NSString *)callback plugin:(BLECentralPlugin *)plugin
-{
-  NSLog(@"Init with callback");
-  self = [super init];
-  if(self) {
-    NSLog(@"_init: %@", self);
-    callbackId = callback;
-    plugin = plugin;
-  }
-  return self;
-}
-
-- (void)updateProgress:(float)progress
-{
-  NSLog(@"Update progress");
-  int data = (int)progress * 100; // send RAW data to Javascript
-
-  CDVPluginResult *pluginResult = nil;
-  pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:data];
-  [pluginResult setKeepCallbackAsBool:TRUE]; // keep for notification
-  [plugin.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
-}
-
-- (void)updateStatus:(NSString*)status errorCode:(RigDfuError_t)error
-{
-  NSLog(@"Update status: %@", status);
-    CDVPluginResult *pluginResult = nil;
-    if (error != DfuError_None) {
-      NSString *temp = [NSString stringWithFormat:@"%@%d", status, error];
-
-      pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:temp];
-      [plugin.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
-    } else {
-
-      pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:status];
-      [plugin.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
-    }
-}
-
-- (void)didFinishUpdate
-{
-  NSLog(@"Finish update");
-    int data = 101; // send RAW data to Javascript
-
-    CDVPluginResult *pluginResult = nil;
-    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:data];
-    [pluginResult setKeepCallbackAsBool:FALSE]; // do NOT keep for notification
-    [plugin.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
-}
-@end
-
 @implementation BLECentralPlugin
 
 @synthesize manager;
@@ -95,6 +42,7 @@
 
     peripherals = [NSMutableSet set];
     manager = [[CBCentralManager alloc] initWithDelegate:self queue:nil];
+    previousProgress = nil;
 
     connectCallbacks = [NSMutableDictionary new];
     connectCallbackLatches = [NSMutableDictionary new];
@@ -932,23 +880,25 @@
 - (void)updateProgress:(CBPeripheral *)peripheral progress:(float)progress
 {
   NSLog(@"Update progress");
-  NSString *key = [peripheral uuidAsString];
-  NSLog(@"Key: %@", key);
-  if (peripheral == nil) {
-    NSLog(@"Peripheral is nil");
-  }
-  if (key == nil) {
-    NSLog(@"Peripheral UUID is nil");
-  }
-  NSString *callbackId = [updateFirmwareCallbacks objectForKey:key];
-  NSLog(@"callback ID %@", callbackId);
   int data = progress * 100; // send RAW data to Javascript
+  if (previousProgress != data) {
+    previousProgress = data;
+    NSString *key = [peripheral uuidAsString];
+    NSLog(@"Key: %@", key);
+    if (peripheral == nil) {
+        NSLog(@"Peripheral is nil");
+    }
+    if (key == nil) {
+        NSLog(@"Peripheral UUID is nil");
+    }
+    NSString *callbackId = [updateFirmwareCallbacks objectForKey:key];
 
-  NSLog(@"Progress %x", data);
-  CDVPluginResult *pluginResult = nil;
-  pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:data];
-  [pluginResult setKeepCallbackAsBool:TRUE]; // keep for notification
-  [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
+    NSLog(@"Progress %d", data);
+    CDVPluginResult *pluginResult = nil;
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:data];
+    [pluginResult setKeepCallbackAsBool:TRUE]; // keep for notification
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
+  }
 }
 
 - (void)updateStatus:(CBPeripheral *)peripheral status:(NSString*)status errorCode:(RigDfuError_t)error

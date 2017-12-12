@@ -37,6 +37,7 @@
     NSMutableDictionary *readRSSICallbacks;
     NSMutableDictionary *updateFirmwareCallbacks;
     RigFirmwareUpdateManager *updateManager;
+    int previousProgress;
 }
 
 @property (strong, nonatomic) NSMutableSet *peripherals;
