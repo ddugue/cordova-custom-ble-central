@@ -773,8 +773,13 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
 
             for (BluetoothGattService service : device.getServiceList()) {
                 servicesArray.put(UUIDHelper.uuidToString(service.getUuid()));
-
-                for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+                List<BluetoothGattCharacteristic> characteristics;
+                if (service != null) {
+                    characteristics = service.getCharacteristics();
+                } else {
+                    characteristics = new ArrayList<BluetoothGattCharacteristic>();
+                }
+                for (BluetoothGattCharacteristic characteristic : characteristics) {
                     JSONObject characteristicsJSON = new JSONObject();
                     characteristicsArray.put(characteristicsJSON);
 
@@ -1019,7 +1024,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
     public void didFinishUpdate() {
         LOG.d(TAG, "Firmware updated finished");
         if (firmwareCallback != null) {
-            PluginResult result = new PluginResult(PluginResult.Status.OK, 100);
+            PluginResult result = new PluginResult(PluginResult.Status.OK, 101);
             result.setKeepCallback(true);
             firmwareCallback.sendPluginResult(result);
             firmwareCallback.success();
