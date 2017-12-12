@@ -227,11 +227,13 @@ typedef enum FirmwareManagerState_enum
             NSLog(@"Invalid parameter provided!");
             return DfuError_InvalidParameter;
         }
-
+        NSLog(@"Writing command %@", command);
         if (characteristic.properties & CBCharacteristicPropertyWriteWithoutResponse) {
-            [device.peripheral writeValue:command forCharacteristic:characteristic type:CBCharacteristicWriteWithoutResponse];
+          NSLog(@"Writing command without response");
+          [device.peripheral writeValue:command forCharacteristic:characteristic type:CBCharacteristicWriteWithoutResponse];
         } else if (characteristic.properties & CBCharacteristicPropertyWrite) {
-            [device.peripheral writeValue:command forCharacteristic:characteristic type:CBCharacteristicWriteWithResponse];
+          NSLog(@"Writing command WITH response");
+          [device.peripheral writeValue:command forCharacteristic:characteristic type:CBCharacteristicWriteWithResponse];
         } else {
             NSLog(@"Update characteristic is not writeable");
             return DfuError_InvalidParameter;
@@ -256,6 +258,7 @@ typedef enum FirmwareManagerState_enum
 
 - (RigDfuError_t)performUpdate:(RigFirmwareUpdateRequest*)request
 {
+  NSLog(@"Performing update");
     return [self updateFirmware:request.updateDevice
                           image:request.image
                    activateChar:request.activationCharacteristic
@@ -871,7 +874,7 @@ typedef enum FirmwareManagerState_enum
   NSLog(@"Discovered device");
   NSLog(@"%@", device.peripheral.name);
   NSLog(@"%x", device.rssi.integerValue);
-    if ([device.peripheral.name isEqual:@"RigDfu"] && device.rssi.integerValue > -85 && device.rssi.integerValue < 0) {
+    if ([device.peripheral.name isEqual:@"RigDfu"]) {
     // if ([device.peripheral.name isEqual:@"RigDfu"] && device.rssi.integerValue > -65 && device.rssi.integerValue < 0) {
 
         [[RigLeDiscoveryManager sharedInstance] stopDiscoveringDevices];

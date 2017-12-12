@@ -55,7 +55,7 @@
 
 - (void)updateStatus:(NSString*)status errorCode:(RigDfuError_t)error
 {
-  NSLog(@"Update status");
+  NSLog(@"Update status: %@", status);
     CDVPluginResult *pluginResult = nil;
     if (error != DfuError_None) {
       NSString *temp = [NSString stringWithFormat:@"%@%d", status, error];
@@ -72,7 +72,7 @@
 - (void)didFinishUpdate
 {
   NSLog(@"Finish update");
-    int data = 100; // send RAW data to Javascript
+    int data = 101; // send RAW data to Javascript
 
     CDVPluginResult *pluginResult = nil;
     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:data];
@@ -113,7 +113,9 @@
                        nil];
 
     updateManager = [[RigFirmwareUpdateManager alloc] init];
-    updateManager.delegate = self;
+    [updateManager setDelegate:self];
+
+    NSLog(@"Delegate for update manager!!! %@", updateManager.delegate);
     readRSSICallbacks = [NSMutableDictionary new];
     [[RigCoreBluetoothInterface sharedInstance] startUpCentralManager];
 }
@@ -317,6 +319,7 @@
         NSString *key = [peripheral uuidAsString];
         NSString *callback = [command.callbackId copy];
         [updateFirmwareCallbacks setObject: callback forKey: key];
+        [updateManager setDelegate:self];
         [updateManager updateFirmware:dev image:firmwareImage activateChar:characteristic activateCommand:com];
     }
 }
@@ -990,7 +993,7 @@
 - (void)didFinishUpdate:(CBPeripheral *)peripheral
 {
   NSLog(@"Finish update");
-    int data = 100; // send RAW data to Javascript
+    int data = 101; // send RAW data to Javascript
 
     NSString *key = [peripheral uuidAsString];
   if (peripheral == nil) {
