@@ -575,6 +575,7 @@ public class BLECentralPlugin extends CordovaPlugin implements IRigLeDiscoveryMa
                                                 characteristic,
                                                 activationBytes
                                                 );
+                in.close();
             } finally {
                 urlConnection.disconnect();
             }
