@@ -9,6 +9,8 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 /**
@@ -276,7 +278,16 @@ public class RigFirmwareUpdateManager implements IRigLeDiscoveryManagerObserver,
     public RigFirmwareUpdateManager() {
     	initStateVariables();
     }
-
+    private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
+    public static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for ( int j = 0; j < bytes.length; j++ ) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
     private byte[] toByte(InputStream is) throws IOException {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
@@ -322,9 +333,16 @@ public class RigFirmwareUpdateManager implements IRigLeDiscoveryManagerObserver,
 
         try {
             mStartImage = toByte(firmwareImage);
+            RigLog.i("__Firmware image bytes__");
+            RigLog.i(String.valueOf(mStartImage.length));
+
+            MessageDigest msg = MessageDigest.getInstance("MD5");
+            RigLog.i(bytesToHex(msg.digest(mStartImage)));
             mImageSize = mStartImage.length;
         } catch(IOException e) {
             RigLog.e("IOException occurred while reading binary image data!");
+        } catch (NoSuchAlgorithmException e) {
+            RigLog.e("Weird error");
         }
 
         if (mStartImage.length < PATCH_KEY_SIZE) {
