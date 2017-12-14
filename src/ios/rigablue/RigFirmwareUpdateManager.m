@@ -163,6 +163,12 @@ typedef enum FirmwareManagerState_enum
     }
 
     isPatchUpdate = NO;
+    isFileSizeWritten = NO;
+    isPacketNotificationEnabled = NO;
+    isReceivingFirmwareImage = NO;
+    isInitPacketSent = NO;
+    isPatchInitPacketSent = NO;
+    packetNumber = 0;
     imageSize = (UInt32)firmwareImage.length;
     image = firmwareImage;
 
@@ -171,6 +177,7 @@ typedef enum FirmwareManagerState_enum
         imageSize = imageSize - (UInt32)kFirmwareKeyLength;
         image = [firmwareImage subdataWithRange:NSMakeRange(kFirmwareKeyLength, imageSize)];
     }
+
 
     // We hold on to an instance of the device and its delegate because the delegate will be overridden by firmwareUpdateService
     // and we will reset it in cleanUpAfterFailure
@@ -663,6 +670,7 @@ typedef enum FirmwareManagerState_enum
         //If the firmware update is now complete, finalize the update and notify the app.
         [NSThread sleepForTimeInterval:2.0];
         [delegate didFinishUpdate:baseDevice.peripheral];
+        [self cleanUpAfterFailure];
     }
 
     //This functionality behaves in tandem with the commands being written to the control point
