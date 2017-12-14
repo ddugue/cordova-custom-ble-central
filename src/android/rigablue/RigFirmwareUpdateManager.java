@@ -325,6 +325,10 @@ public class RigFirmwareUpdateManager implements IRigLeDiscoveryManagerObserver,
         mFirmwareUpdateService.setObserver(this);
 
         if (device == null || firmwareImage == null || activateCharacteristic == null || activateCommand == null) {
+            if (device == null) { RigLog.e("Invalid parameter: Device is null"); }
+            if (firmwareImage == null) { RigLog.e("Invalid parameter: firmware image is null"); }
+            if (activateCharacteristic == null) { RigLog.e("Invalid parameter: activate characteristic is null"); }
+            if (activateCommand == null) { RigLog.e("Invalid parameter: activateCommand is null"); }
             handleUpdateError(RigDfuError.errorFromCode(RigDfuError.INVALID_PARAMETER));
             return false;
         }
