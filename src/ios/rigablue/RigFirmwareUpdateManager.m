@@ -671,6 +671,7 @@ typedef enum FirmwareManagerState_enum
         [NSThread sleepForTimeInterval:2.0];
         [delegate didFinishUpdate:baseDevice.peripheral];
         [self cleanUpAfterFailure];
+        return;
     }
 
     //This functionality behaves in tandem with the commands being written to the control point
